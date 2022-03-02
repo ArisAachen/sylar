@@ -75,6 +75,7 @@ public:
      */
     static uint64_t get_fiber_id();
 
+private:
     /**
      * @brief
      */
@@ -85,6 +86,7 @@ private:
      * @brief Construct a new Fiber object
      */
     Fiber();
+
 
 private:
     /// id 

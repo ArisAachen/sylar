@@ -26,7 +26,9 @@ using StackAllocator = MallocStackAllocator;
 
 static std::atomic<uint64_t> global_fiber_id {0};
 static std::atomic<uint64_t> global_fiber_count {0};
+// current fiber
 static thread_local Fiber::ptr t_fiber = nullptr;
+// main fiber
 static thread_local Fiber::ptr t_thread_fiber = nullptr;
 
 // 
@@ -43,7 +45,8 @@ Fiber::Fiber(std::function<void()>cb, size_t stack_size, bool run_scheduler) :
     ctx_.uc_stack.ss_sp = stack_;
     ctx_.uc_stack.ss_size = stack_size_;
 
-
+    // make context
+    makecontext(&ctx_, &Fiber::main_func, 0);
 }   
 
 Fiber::~Fiber() {
@@ -65,12 +68,44 @@ void Fiber::reset(std::function<void ()> cb) {
     ctx_.uc_stack.ss_size = stack_size_;
 
     state_ = State::Ready;
+    makecontext(&ctx_, &Fiber::main_func, 0);
+}
+
+void Fiber::main_func() {
+    // get curent fiber
+    auto fiber = get_this();
+    fiber->cb_();
+    fiber->cb_ = nullptr;
+    fiber->state_ = State::Term;
+}
+
+void Fiber::set_this(Fiber::ptr obj) {
+    t_fiber = obj;
+}
+
+Fiber::ptr Fiber::get_this() {
+    if (t_fiber)
+        return t_fiber;
+
+    // main fiber
+    Fiber::ptr main_fiber(new Fiber());
+    set_this(main_fiber);
+    t_thread_fiber = main_fiber;
+    return t_fiber;
 }
 
 void Fiber::resume() {
-    set_this(Fiber::ptr(this));
+    set_this(shared_from_this());
 
     
+}
+
+void Fiber::yield() {
+    SYLAR_ASSERT(state_ == State::Running || state_ == State::Term);
+    // set main fiber as current fiber
+    set_this(t_thread_fiber);
+
+    swapcontext(&ctx_, &t_thread_fiber->ctx_);
 }
 
 
