@@ -47,7 +47,20 @@ Fiber::Fiber(std::function<void()>cb, size_t stack_size, bool run_scheduler) :
 
     // make context
     makecontext(&ctx_, &Fiber::main_func, 0);
-}   
+}
+
+Fiber::Fiber() {
+    // set_this(shared_from_this());
+    state_ = State::Running;
+
+    if (getcontext(&ctx_)) {
+        SYLAR_ASSERT(false);
+    }
+    ++global_fiber_count;
+    id_ = global_fiber_id++;
+
+    SYLAR_INFO("create main fiber");
+}
 
 Fiber::~Fiber() {
     SYLAR_FMT_INFO("fiber has been destoried, fiber id: %d", id_);
@@ -72,11 +85,19 @@ void Fiber::reset(std::function<void ()> cb) {
 }
 
 void Fiber::main_func() {
+
+    SYLAR_INFO("fiber main func is execute");
+
     // get curent fiber
     auto fiber = get_this();
     fiber->cb_();
     fiber->cb_ = nullptr;
     fiber->state_ = State::Term;
+
+    // reset fiber
+    auto obj = fiber.get();
+    fiber.reset();
+    obj->yield();
 }
 
 void Fiber::set_this(Fiber::ptr obj) {
@@ -97,7 +118,7 @@ Fiber::ptr Fiber::get_this() {
 void Fiber::resume() {
     set_this(shared_from_this());
 
-    
+    swapcontext(&t_thread_fiber->ctx_, &ctx_);
 }
 
 void Fiber::yield() {

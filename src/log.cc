@@ -215,7 +215,7 @@ public:
 // init format to vec
 void LogFormater::init() {
     // clear old 
-    items_.clear();
+    // items_.clear();
     // type extend success
     std::vector<std::tuple<std::string, std::string, bool>> vec;
     // parse format
@@ -241,13 +241,14 @@ void LogFormater::init() {
                     continue;
                 }
                 // add date time item 
-                vec.emplace_back("d", std::string(log_pattern_[index+2], n-index-2), true);
+                std::string date = log_pattern_.substr(index+2, n-index-2);
+                vec.emplace_back("d", log_pattern_.substr(index+2, n-index-2), true);
                 index = n + 1;
                 break;
             }
         }
         // add other item
-        vec.emplace_back(std::string(log_pattern_[index], 1), "", true);
+        vec.emplace_back(std::string(1, log_pattern_[index]), "", true);
     }
 
     // format items
@@ -272,7 +273,7 @@ void LogFormater::init() {
         auto finder = items.find(std::get<0>(iter));
         // cannot find format, output origin style
         if (finder == items.end()) {
-            items_.emplace_back(StringFormatItem(std::get<1>(iter)));
+            items_.emplace_back(FormaterItem::ptr(new StringFormatItem(std::get<0>(iter))));
         } else {
             // append 
             items_.emplace_back(finder->second(std::get<1>(iter)));
@@ -298,7 +299,9 @@ std::ostream & LogFormater::format(std::ostream & os, LogLevel::Level level, Log
 class StdoutLogAppender : public LogAppender {
 public:
     // use default appender
-    using LogAppender::LogAppender;
+    StdoutLogAppender(const std::string & pattern = "") {
+        formater_.reset(new LogFormater);
+    }
 
     // init
     virtual void init() override {

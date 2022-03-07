@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <fstream>
 #include <ios>
+#include <string>
 #include <unistd.h>
 
 namespace sylar {
@@ -59,6 +60,10 @@ const std::string SystemInfo::user() {
 // get pid 
 uint64_t SystemInfo::pid() {
     return getpid();
+}
+
+const std::string SystemInfo::process_name() {
+    return "proc";
 }
 
 }
