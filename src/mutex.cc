@@ -54,5 +54,16 @@ void Mutex::unlock() {
     pthread_mutex_unlock(&mutex_);
 }
 
+template<typename T>
+ConditionImpl<T>::ConditionImpl(T& con):
+con_(con) {
+
+}
+
+template<typename T>
+ConditionImpl<T>::~ConditionImpl() {
+    
+}
+
 
 }

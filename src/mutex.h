@@ -2,8 +2,8 @@
 #define __SYLAR_SRC_MUTEX_H__
 
 #include "noncopyable.h"
-#include <pthread.h>
 
+#include <pthread.h>
 
 namespace sylar {
 
@@ -41,6 +41,7 @@ private:
 
 class Mutex : Noncopyable {
 public:
+    typedef ScopedLockImpl<Mutex> Lock;
     /**
      * @brief Construct a new Mutex object
      */
@@ -66,7 +67,64 @@ private:
     pthread_mutex_t mutex_;
 };
 
+template<typename T>
+class ConditionImpl {
+public:
+    /**
+     * @brief Construct a new Condtion Impl object
+     * @param con condtion variant
+     */
+    ConditionImpl(T& con);
 
+    /**
+     * @brief Destroy the Condtion Impl object
+     */
+    ~ConditionImpl();
+
+    /**
+     * @brief signal
+     */
+    void signal();
+
+    /**
+     * @brief broad cast
+     */
+    void broadcast();
+
+    /**
+     * @brief 
+     */
+    void wait();
+
+private:
+    /// condition variant
+    T& con_;
+    /// condition is blocked
+    bool blocked_ {false};
+};
+
+class ConditionBlock : Noncopyable {
+public:
+    /**
+     * @brief Construct a new Condition Block object
+     */
+    ConditionBlock();
+
+    /**
+     * @brief Destroy the Condition Block object
+     */
+    ~ConditionBlock();
+
+    void signal();
+
+    void broadcast();
+
+    void wait();
+
+private:
+    /// condition variant
+    pthread_cond_t cond_;
+};
 
 
 }
