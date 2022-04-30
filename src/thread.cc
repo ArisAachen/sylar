@@ -1,5 +1,7 @@
 #include "thread.h"
+#include "log.h"
 #include <cstring>
+#include <pthread.h>
 
 namespace sylar {
 
@@ -10,14 +12,6 @@ Thread::Thread(std::function<void()> cb, const std::string & name) :
 
 // release thread
 Thread::~Thread() {
-    // check if thread is created
-    if (thread_id_ == 0)
-        return;
-    // 
-    int ret;
-    int err = pthread_join(thread_id_, (void **)&ret);
-    if (err != 0) 
-        SYLAR_FMT_ERR("pthread join failed, err: %s", strerror(errno));
 }
 
 // run thread
@@ -25,6 +19,7 @@ void Thread::run() {
     int err = pthread_create(&thread_id_, nullptr, wrap, this);
     if (err != 0)
         SYLAR_FMT_ERR("create failed, thread name: %s, err: %s", name_.c_str(), strerror(errno));
+    SYLAR_FMT_INFO("create thread id: %lld", thread_id_);
 }
 
 // stop thread
@@ -32,6 +27,13 @@ void Thread::stop() {
     if (thread_id_ == 0) 
         return;
     pthread_exit(0);        
+}
+
+void Thread::join() {
+    int ret = pthread_join(thread_id_, nullptr);
+    if (ret != 0) {
+        SYLAR_FMT_ERR("pthread join failed, thread id: %d, err: %s", thread_id_, strerror(errno));
+    }
 }
 
 // swap func
@@ -52,7 +54,7 @@ void *Thread::wrap(void *arg) {
     }
     // set thread name
     int err = pthread_setname_np(thread->thread_id_, thread->name_.c_str());
-    if (err == 0) 
+    if (err != 0) 
         SYLAR_FMT_ERR("set thread name failed, thread id: %d, error: %s", thread->thread_id_, strerror(errno));
     if (thread->cb_)
         thread->cb_();

@@ -3,16 +3,15 @@
 #include "mutex.h"
 #include "thread.h"
 
-#include <functional>
 #include <string>
-
+#include <functional>
 
 namespace sylar {
 
 
 Scheduler::Scheduler(size_t threads, bool use_caller, const std::string& name):
 thread_num_(threads) , use_caller_(use_caller), name_(name) {
-    for (int index = 0; index < thread_num_; thread_num_++) {
+    for (int index = 0; index < thread_num_; index++) {
         // create thread and run
         Thread::ptr thread(new Thread(std::bind(&Scheduler::run, this), "thread_" + std::to_string(index)));
         thread->run();
@@ -24,7 +23,9 @@ thread_num_(threads) , use_caller_(use_caller), name_(name) {
 }
 
 Scheduler::~Scheduler() {
-
+    for (auto& thread : threads_) {
+        thread->join();
+    }
 }
 
 // start scheduler

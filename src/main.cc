@@ -1,5 +1,6 @@
 #include "fiber.h"
 #include "scheduler.h"
+#include "log.h"
 #include "singleton.h"
 
 #include <vector>
@@ -28,6 +29,7 @@ int main () {
     // init log
     sylar::SingletonPtr<sylar::Logger>::get_instance()->init_default();
 
+    SYLAR_INFO("main func start");
     thread_test();
     fiber_test();
 

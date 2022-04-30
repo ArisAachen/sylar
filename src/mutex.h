@@ -15,22 +15,39 @@ public:
      * @brief Construct a new Scoped Lock Impl object
      * @param[in] lock lock
      */
-    ScopedLockImpl(T& lock);
+    ScopedLockImpl(T& lck): lock_(lck) {
+        lock();
+    }
 
     /**
      * @brief Destroy the Scoped Lock Impl object
      */
-    ~ScopedLockImpl();
+    ~ScopedLockImpl() {
+        unlock();
+    }
 
     /**
      * @brief lock
      */
-    void lock();
+    void lock() {
+        // check if is locked
+        if (locked_) 
+            return;
+        // lock 
+        locked_ = true;
+        lock_.lock();
+    }
 
     /**
      * @brief unlock
      */
-    void unlock();
+    void unlock() {
+        // check if is unlocked
+        if (!locked_)
+            return;
+        locked_ = false;
+        lock_.unlock();        
+    }
 
 private:
     /// lock member
@@ -74,27 +91,35 @@ public:
      * @brief Construct a new Condtion Impl object
      * @param con condtion variant
      */
-    ConditionImpl(T& con);
+    ConditionImpl(T& con) : con_(con) {
+
+    }
 
     /**
      * @brief Destroy the Condtion Impl object
      */
-    ~ConditionImpl();
+    ~ConditionImpl() {}
 
     /**
      * @brief signal
      */
-    void signal();
+    void signal() {
+        con_.signal();
+    }
 
     /**
      * @brief broad cast
      */
-    void broadcast();
+    void broadcast() {
+        con_.broadcast();
+    }
 
     /**
      * @brief 
      */
-    void wait();
+    void wait() {
+        con_.wait();
+    }
 
 private:
     /// condition variant

@@ -1,6 +1,7 @@
 #include "utils.h"
 #include <bits/types/FILE.h>
 #include <cstdint>
+#include <cstdlib>
 #include <fstream>
 #include <ios>
 #include <string>
@@ -16,7 +17,9 @@ const std::string StringUtils::sprintf(const char* fmt, ...) {
         size_t size = vasprintf(&buf, fmt, ap);
         SYLAR_ASSERT(size < 0);
         va_end(ap);
-        return "";    
+        std::string ret(buf, size);
+        free(buf);
+        return ret;    
 }
 
 // save to file

@@ -37,6 +37,12 @@ public:
      * 
      */
     void stop();
+
+    /**
+     * @brief join thread
+     */
+    void join();
+
     /**
      * @brief 
      * @param[in] cb thread func
