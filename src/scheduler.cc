@@ -1,5 +1,6 @@
 #include "scheduler.h"
 #include "log.h"
+#include "mutex.h"
 #include "thread.h"
 
 #include <functional>
@@ -55,7 +56,14 @@ void Scheduler::stop() {
 
 // run scheduler
 void Scheduler::run() {
-    
+    SYLAR_INFO("scheduler run");
 }
+
+void Scheduler::idle() {
+    // wait here
+    ConditionBlock::Block block(cond_);
+    block.wait();
+}
+
 
 }

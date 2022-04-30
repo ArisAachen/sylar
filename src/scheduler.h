@@ -10,7 +10,6 @@
 #include <string>
 #include <vector>
 #include <functional>
-#include <condition_variable>
 
 namespace sylar {
 
@@ -19,6 +18,7 @@ class Scheduler  {
 public:
     typedef std::shared_ptr<Scheduler> ptr;
     typedef Mutex MutexType;
+    typedef ConditionBlock ConditionType;
     /**
      * @brief Construct a new Scheduler object
      * @param threads thread numeber
@@ -47,6 +47,11 @@ protected:
      * @brief run scheduler
      */
     void run();
+
+    /**
+     * @brief idle scheduler
+     */
+    void idle();
 
 private:
     /**
@@ -117,8 +122,8 @@ private:
     bool running_ {false};
     /// mutex type
     MutexType mutex_;
-    // 
-    std::condition_variable block_;
+    /// condition type
+    ConditionType cond_;
 };
 
 

@@ -15,7 +15,7 @@ public:
      * @brief Construct a new Scoped Lock Impl object
      * @param[in] lock lock
      */
-    ScopedLockImpl(T & lock);
+    ScopedLockImpl(T& lock);
 
     /**
      * @brief Destroy the Scoped Lock Impl object
@@ -105,6 +105,7 @@ private:
 
 class ConditionBlock : Noncopyable {
 public:
+    typedef ConditionImpl<ConditionBlock> Block;
     /**
      * @brief Construct a new Condition Block object
      */
@@ -115,15 +116,27 @@ public:
      */
     ~ConditionBlock();
 
+    /**
+     * @brief emit signal
+     */
     void signal();
 
+    /**
+     * @brief broadcast signal
+     */
     void broadcast();
 
-    void wait();
-
+    /**
+     * @brief wait signal
+     */
+    void wait();    
 private:
     /// condition variant
     pthread_cond_t cond_;
+    /// mutex
+    pthread_mutex_t mutex_;
+    /// block state
+    bool blocked_;
 };
 
 

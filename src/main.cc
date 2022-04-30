@@ -1,5 +1,5 @@
 #include "fiber.h"
-#include "log.h"
+#include "scheduler.h"
 #include "singleton.h"
 
 #include <vector>
@@ -8,11 +8,12 @@ void test() {
     SYLAR_INFO(">>>>>> test func");
 }
 
+void thread_test() {
+    sylar::Scheduler::ptr schedule(new sylar::Scheduler(15, false));
+    schedule->start();
+}
 
-int main () {
-    // init log
-    sylar::SingletonPtr<sylar::Logger>::get_instance()->init_default();
-
+void fiber_test() {
     std::vector<sylar::Fiber::ptr> vec;
     for (int index = 0; index < 20; index++) {
         vec.emplace_back(sylar::Fiber::ptr(new sylar::Fiber(test, 0, false)));
@@ -21,6 +22,14 @@ int main () {
     for (auto iter : vec) {
         iter->resume();
     }
+}
+
+int main () {
+    // init log
+    sylar::SingletonPtr<sylar::Logger>::get_instance()->init_default();
+
+    thread_test();
+    fiber_test();
 
     return 1;
 }
