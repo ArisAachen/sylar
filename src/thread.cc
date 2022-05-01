@@ -40,9 +40,9 @@ void Thread::join() {
     if (!running_) 
         return;
     int ret = pthread_join(thread_id_, nullptr);
-    if (ret != 0) {
+    if (ret != 0)
         SYLAR_FMT_ERR("pthread join failed, thread id: %d, err: %s", thread_id_, strerror(errno));
-    }
+    SYLAR_DEBUG("pthread join end");
 }
 
 // swap func

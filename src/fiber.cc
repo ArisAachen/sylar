@@ -5,6 +5,7 @@
 #include <atomic>
 #include <cstddef>
 #include <functional>
+#include <string>
 #include <ucontext.h>
 
 
@@ -32,8 +33,8 @@ static thread_local Fiber::ptr t_fiber = nullptr;
 static thread_local Fiber::ptr t_thread_fiber = nullptr;
 
 // 
-Fiber::Fiber(std::function<void()>cb, size_t stack_size, bool run_scheduler) : 
-    id_(global_fiber_id++), cb_(cb), run_scheduler_(run_scheduler) {
+Fiber::Fiber(std::function<void()>cb, size_t stack_size, bool run_scheduler, const std::string name) : 
+    id_(global_fiber_id++), cb_(cb), run_scheduler_(run_scheduler), name_(name) {
     global_fiber_count++;
     stack_size_ = stack_size ? stack_size : 128 * 1024;
     stack_ = StackAllocator::Alloc(stack_size_);
@@ -47,6 +48,7 @@ Fiber::Fiber(std::function<void()>cb, size_t stack_size, bool run_scheduler) :
 
     // make context
     makecontext(&ctx_, &Fiber::main_func, 0);
+    SYLAR_FMT_DEBUG("create child fiber, fiber id: %d", id_);
 }
 
 Fiber::Fiber() {
@@ -59,12 +61,15 @@ Fiber::Fiber() {
     ++global_fiber_count;
     id_ = global_fiber_id++;
 
-    SYLAR_INFO("create main fiber");
+    SYLAR_FMT_DEBUG("create main fiber, fiber id: %d", id_);
 }
 
 Fiber::~Fiber() {
     SYLAR_FMT_INFO("fiber has been destoried, fiber id: %d", id_);
     global_fiber_count--;
+    if (name_ == "idle") {
+        SYLAR_DEBUG("idle has been called");
+    }
     if (stack_) {
         StackAllocator::Dealloc(stack_);
     }
@@ -85,7 +90,7 @@ void Fiber::reset(std::function<void ()> cb) {
 }
 
 void Fiber::main_func() {
-    
+
     // get curent fiber
     auto fiber = get_this();
 

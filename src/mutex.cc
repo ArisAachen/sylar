@@ -31,8 +31,6 @@ ConditionBlock::ConditionBlock(Mutex& mutex) {
 ConditionBlock::~ConditionBlock() {
     // destory condition
     pthread_cond_destroy(&cond_);
-    // mutex destory
-    pthread_mutex_destroy(&mutex_);
 }
 
 void ConditionBlock::signal() {

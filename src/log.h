@@ -263,7 +263,7 @@ protected:
     /// log formater 
     LogFormater::ptr formater_;
     /// log level
-    LogLevel::Level level_ { LogLevel::Level::Info };
+    LogLevel::Level level_ { LogLevel::Level::Debug };
 };
 
 

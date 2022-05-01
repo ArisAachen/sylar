@@ -24,6 +24,7 @@ Scheduler::~Scheduler() {
     for (auto& thread : threads_) {
         thread->join();
     }
+    SYLAR_DEBUG("schedule destoried");
 }
 
 // start scheduler
@@ -54,7 +55,7 @@ void Scheduler::stop() {
 }
 
 void Scheduler::schedule(std::function<void ()> cb, int thr) {
-    SYLAR_INFO("schedule add task");
+    SYLAR_DEBUG("schedule add task");
     MutexType::Lock lock(mutex_);
     tasks_.emplace_back(new ScheduleTask(cb, thr));
     ConditionBlock::Block block(cond_);
@@ -66,7 +67,6 @@ void Scheduler::run() {
     SYLAR_INFO("scheduler run");
     // create idle fiber
     Fiber::get_this();
-    Fiber::ptr idle_fiber(new Fiber(std::bind(&Scheduler::idle, this), 0, false));
 
     while(true) {
         // check if is empty
@@ -74,8 +74,10 @@ void Scheduler::run() {
         {   
             // if all tasks execute end, should wait here
             MutexType::Lock lock(mutex_);
+            SYLAR_FMT_DEBUG("current task size is %d", tasks_.size());
             if (tasks_.size() == 0) {
                 lock.unlock();
+                Fiber::ptr idle_fiber(new Fiber(std::bind(&Scheduler::idle, this), 0, false, "idle"));
                 idle_fiber->resume();
             }
 

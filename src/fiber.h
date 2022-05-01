@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <string>
 #include <sys/ucontext.h>
 #include <ucontext.h>
 
@@ -21,7 +22,7 @@ public:
      * @param[in] stack_size 
      * @param[in] run_scheduler 
      */
-    Fiber(std::function<void()>cb, size_t stack_size = 0, bool run_scheduler = false);
+    Fiber(std::function<void()>cb, size_t stack_size = 0, bool run_scheduler = false, const std::string name = "child");
 
     /**
      * @brief Destroy the virtual Fiber object
@@ -102,6 +103,8 @@ private:
     std::function<void()> cb_ {nullptr};
     /// run scheduler
     bool run_scheduler_ {false};
+    /// fiber name
+    std::string name_ {""};
 };
 
 

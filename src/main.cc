@@ -3,6 +3,7 @@
 #include "log.h"
 #include "singleton.h"
 
+#include <unistd.h>
 #include <vector>
 
 void test() {
@@ -14,7 +15,13 @@ void scheduler_test() {
     schedule->start();
 
 
-    for (int index = 0; index < 15; index++) {
+    for (int index = 0; index < 1; index++) {
+        schedule->schedule(test);
+    }
+
+    sleep(5);
+    SYLAR_INFO("wake up");
+    for (int index = 0; index < 1; index++) {
         schedule->schedule(test);
     }
 }
@@ -34,8 +41,9 @@ int main () {
     // init log
     sylar::Singleton<sylar::Logger>::get_instance()->init_default();
 
-    // SYLAR_INFO("main func start");
+    SYLAR_INFO("main start");
     scheduler_test();
+    SYLAR_INFO("main end");
 
     return 1;
 }

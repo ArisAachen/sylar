@@ -10,16 +10,16 @@
 namespace sylar {
 
 const std::string StringUtils::sprintf(const char* fmt, ...) {
-        va_list ap;
-        
-        va_start(ap, fmt);
-        char* buf = nullptr;
-        size_t size = vasprintf(&buf, fmt, ap);
-        SYLAR_ASSERT(size < 0);
-        va_end(ap);
-        std::string ret(buf, size);
-        free(buf);
-        return ret;    
+    va_list ap;
+    
+    va_start(ap, fmt);
+    char* buf = nullptr;
+    size_t size = vasprintf(&buf, fmt, ap);
+    SYLAR_ASSERT(size < 0);
+    va_end(ap);
+    std::string ret(buf, size);
+    free(buf);
+    return ret;    
 }
 
 // save to file
