@@ -56,34 +56,6 @@ private:
     bool locked_ {false};
 };
 
-class Mutex : Noncopyable {
-public:
-    typedef ScopedLockImpl<Mutex> Lock;
-    /**
-     * @brief Construct a new Mutex object
-     */
-    Mutex();
-
-    /**
-     * @brief Destroy the Mutex object
-     */
-    ~Mutex();
-
-    /**
-     * @brief lock 
-     */
-    void lock();
-
-    /**
-     * @brief unlock
-     */
-    void unlock();
-
-private:
-    /// pthread mutex
-    pthread_mutex_t mutex_;
-};
-
 template<typename T>
 class ConditionImpl {
 public:
@@ -128,13 +100,45 @@ private:
     bool blocked_ {false};
 };
 
+class ConditionBlock;
+
+class Mutex : Noncopyable {
+public:
+    friend class ConditionBlock;
+    typedef ScopedLockImpl<Mutex> Lock;
+    /**
+     * @brief Construct a new Mutex object
+     */
+    Mutex();
+
+    /**
+     * @brief Destroy the Mutex object
+     */
+    ~Mutex();
+
+    /**
+     * @brief lock 
+     */
+    void lock();
+
+    /**
+     * @brief unlock
+     */
+    void unlock();
+
+private:
+    /// pthread mutex
+    pthread_mutex_t mutex_;
+};
+
 class ConditionBlock : Noncopyable {
 public:
     typedef ConditionImpl<ConditionBlock> Block;
     /**
      * @brief Construct a new Condition Block object
      */
-    ConditionBlock();
+    
+    ConditionBlock(Mutex& mutex);
 
     /**
      * @brief Destroy the Condition Block object
@@ -163,6 +167,8 @@ private:
     /// block state
     bool blocked_;
 };
+
+
 
 
 }

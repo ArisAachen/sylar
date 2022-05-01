@@ -81,6 +81,8 @@ private:
     pthread_t thread_id_ {0};
     /// proc id
     pid_t proc_id {0};
+    /// running state
+    bool running_ {false};
 };
 
 }

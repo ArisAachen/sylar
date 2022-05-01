@@ -21,7 +21,7 @@ public:
      * @param[in] stack_size 
      * @param[in] run_scheduler 
      */
-    Fiber(std::function<void()>cb, size_t stack_size, bool run_scheduler);
+    Fiber(std::function<void()>cb, size_t stack_size = 0, bool run_scheduler = false);
 
     /**
      * @brief Destroy the virtual Fiber object
@@ -86,7 +86,6 @@ private:
      * @brief Construct a new Fiber object
      */
     Fiber();
-
 
 private:
     /// id 

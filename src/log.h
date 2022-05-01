@@ -23,7 +23,7 @@
 #define SYLAR_ERR(msg) SYLAR_LOG(sylar::LogLevel::Level::Err, msg)
 #define SYLAR_FATAL(msg) ESYLAR_LOG(sylar::LogLevel::Level::Fatal, msg)
 #define SYLAR_LOG(level, msg) \
-    sylar::SingletonPtr<sylar::Logger>::get_instance()->log(level, std::make_shared<sylar::LogEvent>(std::chrono::system_clock::now(), \
+    sylar::Singleton<sylar::Logger>::get_instance()->log(level, std::make_shared<sylar::LogEvent>(std::chrono::system_clock::now(), \
         sylar::SystemInfo::user(), sylar::SystemInfo::process_name(), sylar::SystemInfo::pid(), __FILE__, __func__, __LINE__, msg))
 
 // fmt style log
@@ -33,7 +33,7 @@
 #define SYLAR_FMT_ERR(fmt, ...) SYLAR_FMT_LOG(sylar::LogLevel::Level::Err, fmt, __VA_ARGS__)
 #define SYLAR_FMT_FATAL(fmt, ...) SYLAR_FMT_LOG(sylar::LogLevel::Level::Fatal, fmt, __VA_ARGS__)
 #define  SYLAR_FMT_LOG(level, fmt, ...) \
-    sylar::SingletonPtr<sylar::Logger>::get_instance()->log(level, std::make_shared<sylar::LogEvent>(std::chrono::system_clock::now(), \
+    sylar::Singleton<sylar::Logger>::get_instance()->log(level, std::make_shared<sylar::LogEvent>(std::chrono::system_clock::now(), \
         sylar::SystemInfo::user(), sylar::SystemInfo::process_name(), sylar::SystemInfo::pid(), __FILE__, __func__, __LINE__, \
             sylar::StringUtils::sprintf(fmt, __VA_ARGS__)))
 

@@ -42,6 +42,13 @@ public:
      */
     void stop();
 
+    /**
+     * @brief schedule func
+     * @param cb fiber func
+     * @param thread thread id
+     */
+    void schedule(std::function<void()> cb, int thread = -1);
+
 protected:
     /**
      * @brief run scheduler
@@ -59,6 +66,12 @@ private:
      */
     struct ScheduleTask {
         typedef std::shared_ptr<ScheduleTask> ptr;
+
+        /**
+         * @brief Construct a new Schedule Task object
+         */
+        ScheduleTask() {}
+
         /**
          * @brief Construct a new Schedule Task object
          * @param f fiber func
@@ -72,7 +85,7 @@ private:
          * @param thr thread id 
          */
         ScheduleTask(std::function<void()> f, int thr = -1) {
-            fiber = Fiber::ptr(new Fiber(f, 512, true));
+            fiber = Fiber::ptr(new Fiber(f, 0, true));
             thread = thr;
         }
 
@@ -97,10 +110,16 @@ private:
             thread = thr;
         }
 
+        /**
+         * @brief execute fiber
+         */
+        void execute() {
+            if (fiber != nullptr)
+                fiber->resume();
+        }
+
         /// execute fiber
         Fiber::ptr fiber;
-        /// call func
-        std::function<void()> cb;
         /// thread id
         int thread {0};
     };
@@ -123,7 +142,7 @@ private:
     /// mutex type
     MutexType mutex_;
     /// condition type
-    ConditionType cond_;
+    ConditionType cond_ {mutex_};
 };
 
 

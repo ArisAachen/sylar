@@ -4,7 +4,7 @@
 
 #include <atomic>
 #include <cstddef>
-#include <cstdlib>
+#include <functional>
 #include <ucontext.h>
 
 
@@ -85,12 +85,12 @@ void Fiber::reset(std::function<void ()> cb) {
 }
 
 void Fiber::main_func() {
-
-    SYLAR_INFO("fiber main func is execute");
-
+    
     // get curent fiber
     auto fiber = get_this();
-    fiber->cb_();
+
+    if (fiber->cb_)
+        fiber->cb_();
     fiber->cb_ = nullptr;
     fiber->state_ = State::Term;
 
@@ -109,9 +109,8 @@ Fiber::ptr Fiber::get_this() {
         return t_fiber;
 
     // main fiber
-    Fiber::ptr main_fiber(new Fiber());
-    set_this(main_fiber);
-    t_thread_fiber = main_fiber;
+    t_thread_fiber = Fiber::ptr(new Fiber());
+    t_fiber = t_thread_fiber;
     return t_fiber;
 }
 

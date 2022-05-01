@@ -9,9 +9,14 @@ void test() {
     SYLAR_INFO(">>>>>> test func");
 }
 
-void thread_test() {
-    sylar::Scheduler::ptr schedule(new sylar::Scheduler(15, false));
+void scheduler_test() {
+    sylar::Scheduler::ptr schedule(new sylar::Scheduler(1, false));
     schedule->start();
+
+
+    for (int index = 0; index < 15; index++) {
+        schedule->schedule(test);
+    }
 }
 
 void fiber_test() {
@@ -27,11 +32,10 @@ void fiber_test() {
 
 int main () {
     // init log
-    sylar::SingletonPtr<sylar::Logger>::get_instance()->init_default();
+    sylar::Singleton<sylar::Logger>::get_instance()->init_default();
 
-    SYLAR_INFO("main func start");
-    thread_test();
-    fiber_test();
+    // SYLAR_INFO("main func start");
+    scheduler_test();
 
     return 1;
 }

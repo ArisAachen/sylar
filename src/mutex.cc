@@ -21,11 +21,11 @@ void Mutex::unlock() {
     pthread_mutex_unlock(&mutex_);
 }
 
-ConditionBlock::ConditionBlock() {
+ConditionBlock::ConditionBlock(Mutex& mutex) {
     // init condition
     pthread_cond_init(&cond_, nullptr);
     // init mutex
-    pthread_mutex_init(&mutex_, nullptr);
+    mutex_ = mutex.mutex_;
 }
 
 ConditionBlock::~ConditionBlock() {
@@ -40,9 +40,8 @@ void ConditionBlock::signal() {
         return;
     blocked_ = false;
     // signal once
-    pthread_mutex_lock(&mutex_);
+    // pthread_mutex_unlock(&mutex_);
     pthread_cond_signal(&cond_);
-    pthread_mutex_unlock(&mutex_);
 }
 
 void ConditionBlock::broadcast() {
@@ -50,9 +49,8 @@ void ConditionBlock::broadcast() {
         return;
     blocked_ = false;
     // broadcast signal
-    pthread_mutex_lock(&mutex_);
+    // pthread_mutex_unlock(&mutex_);
     pthread_cond_broadcast(&cond_);
-    pthread_mutex_unlock(&mutex_);
 }
 
 void ConditionBlock::wait() {
@@ -60,7 +58,9 @@ void ConditionBlock::wait() {
     if (blocked_) 
         return;
     blocked_ = true;
+    // pthread_mutex_lock(&mutex_);
     pthread_cond_wait(&cond_, &mutex_);
+    // pthread_mutex_unlock(&mutex_);
 }
 
 }
