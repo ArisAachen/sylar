@@ -35,19 +35,19 @@ public:
     /**
      * @brief start scheduler
      */
-    void start();
+    virtual void start();
 
     /**
      * @brief stop scheduler
      */
-    void stop();
+    virtual void stop();
 
     /**
      * @brief schedule func
      * @param cb fiber func
      * @param thread thread id
      */
-    void schedule(std::function<void()> cb, int thread = -1);
+    virtual void schedule(std::function<void()> cb, int thread = -1);
 
     /**
      * @brief Get the schedule fiber object
@@ -63,7 +63,7 @@ protected:
     /**
      * @brief idle scheduler
      */
-    void idle();
+    virtual void idle();
 
 private:
     /**

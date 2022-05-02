@@ -41,7 +41,7 @@ void scheduler_thread_test() {
 
 void scheduler_test() {
     SYLAR_INFO("++++++ begin scheduler test ++++++");
-    sylar::Scheduler::ptr schedule(new sylar::Scheduler());
+    sylar::Scheduler::ptr schedule(new sylar::Scheduler(10));
     for (int index = 0; index < 20; index++) {
         schedule->schedule(test);
     }
