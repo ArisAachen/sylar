@@ -49,6 +49,11 @@ public:
      */
     void schedule(std::function<void()> cb, int thread = -1);
 
+    /**
+     * @brief Get the schedule fiber object
+     */
+    static Fiber::ptr get_schedule_fiber();
+
 protected:
     /**
      * @brief run scheduler
@@ -84,8 +89,8 @@ private:
          * @param f execute func
          * @param thr thread id 
          */
-        ScheduleTask(std::function<void()> f, int thr = -1) {
-            fiber = Fiber::ptr(new Fiber(f, 0, true));
+        ScheduleTask(std::function<void()> f, bool use_caller = true, int thr = -1) {
+            fiber = Fiber::ptr(new Fiber(f, 0, use_caller));
             thread = thr;
         }
 
@@ -140,7 +145,7 @@ private:
     /// run state
     bool running_ {false};
     /// mutex type
-    MutexType mutex_;
+    MutexType mutex_ {};
     /// condition type
     ConditionType cond_ {mutex_};
 };

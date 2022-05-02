@@ -1,6 +1,7 @@
 #include "fiber.h"
 #include "macro.h"
 #include "log.h"
+#include "scheduler.h"
 
 #include <atomic>
 #include <cstddef>
@@ -121,16 +122,32 @@ Fiber::ptr Fiber::get_this() {
 
 void Fiber::resume() {
     set_this(shared_from_this());
-
-    swapcontext(&t_thread_fiber->ctx_, &ctx_);
+    // mark this fiber to running
+    state_ = State::Running;
+    // if child fiber run in scheduler
+    if (run_scheduler_) {
+        SYLAR_DEBUG("resume scheduler child fiber");
+        swapcontext(&(Scheduler::get_schedule_fiber()->ctx_), &ctx_);
+    } else {
+        SYLAR_DEBUG("resume thread fiber");
+        swapcontext(&t_thread_fiber->ctx_, &ctx_);
+    }
 }
 
 void Fiber::yield() {
     SYLAR_ASSERT(state_ == State::Running || state_ == State::Term);
     // set main fiber as current fiber
     set_this(t_thread_fiber);
+    // mark this fiber to Ready
+    state_ = State::Ready;
 
-    swapcontext(&ctx_, &t_thread_fiber->ctx_);
+    if (run_scheduler_) {
+        SYLAR_DEBUG("idle scheduler child fiber");
+        swapcontext(&ctx_, &(Scheduler::get_schedule_fiber()->ctx_));
+    } else {
+        SYLAR_DEBUG("idle thread fiber");
+        swapcontext(&ctx_, &t_thread_fiber->ctx_);
+    }
 }
 
 

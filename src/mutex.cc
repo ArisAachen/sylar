@@ -1,5 +1,9 @@
 #include "mutex.h"
 
+#include <iostream>
+#include <exception>
+
+
 #include <pthread.h>
 
 
@@ -14,7 +18,11 @@ Mutex::~Mutex() {
 }
 
 void Mutex::lock() {
-    pthread_mutex_lock(&mutex_);
+    try {
+        pthread_mutex_lock(&mutex_);
+    } catch (std::exception& e) {
+        std::cout << "lock failed " << e.what() << std::endl;
+    }
 }
 
 void Mutex::unlock() {

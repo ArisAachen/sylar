@@ -10,21 +10,6 @@ void test() {
     SYLAR_INFO(">>>>>> test func");
 }
 
-void scheduler_test() {
-    sylar::Scheduler::ptr schedule(new sylar::Scheduler(1, false));
-    schedule->start();
-
-
-    for (int index = 0; index < 1; index++) {
-        schedule->schedule(test);
-    }
-
-    sleep(5);
-    SYLAR_INFO("wake up");
-    for (int index = 0; index < 1; index++) {
-        schedule->schedule(test);
-    }
-}
 
 void fiber_test() {
     std::vector<sylar::Fiber::ptr> vec;
@@ -37,13 +22,40 @@ void fiber_test() {
     }
 }
 
+void scheduler_thread_test() {
+    SYLAR_INFO(">>>>>> begin scheduler thread test");
+    sylar::Scheduler::ptr schedule(new sylar::Scheduler(1, false));
+    schedule->start();
+
+    for (int index = 0; index < 1; index++) {
+        schedule->schedule(test);
+    }
+
+    sleep(5);
+    SYLAR_INFO("wake up");
+    for (int index = 0; index < 1; index++) {
+        schedule->schedule(test);
+    }
+    SYLAR_INFO("<<<<<< end scheduler thread test");
+}
+
+void scheduler_test() {
+    SYLAR_INFO("++++++ begin scheduler test ++++++");
+    sylar::Scheduler::ptr schedule(new sylar::Scheduler());
+    for (int index = 0; index < 20; index++) {
+        schedule->schedule(test);
+    }
+    schedule->start();
+    SYLAR_INFO("++++++ end scheduler test ++++++");
+}
+
+
 int main () {
     // init log
     sylar::Singleton<sylar::Logger>::get_instance()->init_default();
 
-    SYLAR_INFO("main start");
+    // scheduler_thread_test();
     scheduler_test();
-    SYLAR_INFO("main end");
 
     return 1;
 }
