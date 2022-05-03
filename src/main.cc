@@ -7,7 +7,7 @@
 #include <vector>
 
 void test() {
-    SYLAR_INFO(">>>>>> test func");
+    SYLAR_DEBUG(">>>>>> execute test func");
 }
 
 
@@ -23,30 +23,26 @@ void fiber_test() {
 }
 
 void scheduler_thread_test() {
-    SYLAR_INFO(">>>>>> begin scheduler thread test");
-    sylar::Scheduler::ptr schedule(new sylar::Scheduler(1, false));
+    sylar::Scheduler::ptr schedule(new sylar::Scheduler(2, false));
     schedule->start();
 
-    for (int index = 0; index < 1; index++) {
+    for (int index = 0; index < 2; index++) {
         schedule->schedule(test);
     }
 
     sleep(5);
     SYLAR_INFO("wake up");
-    for (int index = 0; index < 1; index++) {
+    for (int index = 0; index < 2; index++) {
         schedule->schedule(test);
     }
-    SYLAR_INFO("<<<<<< end scheduler thread test");
 }
 
 void scheduler_test() {
-    SYLAR_INFO("++++++ begin scheduler test ++++++");
-    sylar::Scheduler::ptr schedule(new sylar::Scheduler(10));
+    sylar::Scheduler::ptr schedule(new sylar::Scheduler(2, true));
     for (int index = 0; index < 20; index++) {
         schedule->schedule(test);
     }
     schedule->start();
-    SYLAR_INFO("++++++ end scheduler test ++++++");
 }
 
 

@@ -9,7 +9,10 @@
 
 namespace sylar {
 
+/// thread schedule diber
 static thread_local Fiber::ptr schedule_fiber = nullptr;
+/// indicate if current is main thread as scheduler
+static thread_local bool is_scheduler = false;
 
 Scheduler::Scheduler(size_t threads, bool use_caller, const std::string& name):
 thread_num_(threads) , use_caller_(use_caller), name_(name) {
@@ -50,6 +53,7 @@ void Scheduler::start() {
 
     // check if use main thread as schedule
     if (use_caller_) {
+        is_scheduler = true;
         // create main fiber
         Fiber::get_this();
         // begin to schedule
@@ -68,16 +72,17 @@ void Scheduler::stop() {
     thread_ids_.clear();
 }
 
+bool Scheduler::is_scheduler_fiber() {
+    return is_scheduler;
+}
+
 Fiber::ptr Scheduler::get_schedule_fiber() {
     return schedule_fiber;
 }
 
 void Scheduler::schedule(std::function<void ()> cb, int thr) {
     SYLAR_DEBUG("schedule add task");
-    MutexType::Lock lock(mutex_);
-    tasks_.emplace_back(new ScheduleTask(cb, use_caller_,thr));
-    ConditionBlock::Block block(cond_);
-    cond_.signal();
+    task_push(ScheduleTask::ptr(new ScheduleTask(cb, use_caller_,thr)));
 }
 
 // run scheduler
@@ -88,25 +93,7 @@ void Scheduler::run() {
 
     while(true) {
         // check if is empty
-        ScheduleTask::ptr task;
-        {   
-            // if all tasks execute end, should wait here
-            MutexType::Lock lock(mutex_);
-            SYLAR_FMT_DEBUG("current task size is %d", tasks_.size());
-            if (tasks_.size() == 0) {
-                // if use caller, directly return here
-                if (use_caller_)
-                    return;
-                lock.unlock();
-                Fiber::ptr idle_fiber(new Fiber(std::bind(&Scheduler::idle, this), 0, false, "idle"));
-                idle_fiber->resume();
-            }
-
-            // get task
-            task = tasks_.front();
-            tasks_.pop_front();
-        }
-        // execute fiber
+        ScheduleTask::ptr task = task_pop();
         task->execute();
     }
 }
@@ -116,7 +103,32 @@ void Scheduler::idle() {
     // wait here
     ConditionBlock::Block block(cond_);
     block.wait();
+    SYLAR_DEBUG("at least one task is added, exit idle");
 }
 
+bool Scheduler::is_tasks_empty() {
+    MutexType::Lock lock(mutex_);
+    return tasks_.size() == 0;
+}
+
+void Scheduler::task_push(ScheduleTask::ptr task) {
+    MutexType::Lock lock(mutex_);
+    tasks_.push_back(std::move(task));
+    ConditionBlock::Block block(cond_);
+    block.signal();
+}
+
+Scheduler::ScheduleTask::ptr Scheduler::task_pop() {
+    // check if tasks is empty, if is should call idle to wait
+    if (is_tasks_empty()) {
+        Fiber::ptr idle_fiber(new Fiber(std::bind(&Scheduler::idle, this), 0, use_caller_, "idle"));
+        idle_fiber->resume();
+    }
+    // if is not empty， pop one elem
+    MutexType::Lock lock(mutex_);
+    ScheduleTask::ptr task = tasks_.front();
+    tasks_.pop_front();
+    return task;
+}
 
 }

@@ -1,4 +1,5 @@
 #include "mutex.h"
+#include "log.h"
 
 #include <iostream>
 #include <exception>
@@ -46,7 +47,6 @@ void ConditionBlock::signal() {
         return;
     blocked_ = false;
     // signal once
-    // pthread_mutex_unlock(&mutex_);
     pthread_cond_signal(&cond_);
 }
 
@@ -54,19 +54,14 @@ void ConditionBlock::broadcast() {
     if (!blocked_) 
         return;
     blocked_ = false;
-    // broadcast signal
-    // pthread_mutex_unlock(&mutex_);
     pthread_cond_broadcast(&cond_);
 }
 
 void ConditionBlock::wait() {
-    // already has one block
-    if (blocked_) 
-        return;
     blocked_ = true;
-    // pthread_mutex_lock(&mutex_);
+    pthread_mutex_lock(&mutex_);
     pthread_cond_wait(&cond_, &mutex_);
-    // pthread_mutex_unlock(&mutex_);
+    pthread_mutex_unlock(&mutex_);
 }
 
 }

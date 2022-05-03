@@ -49,7 +49,7 @@ Fiber::Fiber(std::function<void()>cb, size_t stack_size, bool run_scheduler, con
 
     // make context
     makecontext(&ctx_, &Fiber::main_func, 0);
-    SYLAR_FMT_DEBUG("create child fiber, fiber id: %d", id_);
+    SYLAR_FMT_DEBUG("create child fiber, fiber name: %s, fiber id: %d", name_.c_str(), id_);
 }
 
 Fiber::Fiber() {
@@ -66,10 +66,10 @@ Fiber::Fiber() {
 }
 
 Fiber::~Fiber() {
-    SYLAR_FMT_INFO("fiber has been destoried, fiber id: %d", id_);
+    SYLAR_FMT_INFO("fiber has been destoried, fiber name: %s, fiber id: %d", name_.c_str(), id_);
     global_fiber_count--;
     if (name_ == "idle") {
-        SYLAR_DEBUG("idle has been called");
+        SYLAR_FMT_DEBUG("idle has been called, fiber id: %d", id_);
     }
     if (stack_) {
         StackAllocator::Dealloc(stack_);
@@ -125,11 +125,11 @@ void Fiber::resume() {
     // mark this fiber to running
     state_ = State::Running;
     // if child fiber run in scheduler
-    if (run_scheduler_) {
-        SYLAR_DEBUG("resume scheduler child fiber");
+    if (run_scheduler_ && Scheduler::is_scheduler_fiber()) {
+        SYLAR_FMT_DEBUG("resume scheduler child fiber, fiber name: %s, fiber id: %d", name_.c_str(), id_);
         swapcontext(&(Scheduler::get_schedule_fiber()->ctx_), &ctx_);
     } else {
-        SYLAR_DEBUG("resume thread fiber");
+        SYLAR_FMT_DEBUG("resume thread fiber, fiber name: %s, fiber id: %d", name_.c_str(), id_);
         swapcontext(&t_thread_fiber->ctx_, &ctx_);
     }
 }
@@ -141,11 +141,11 @@ void Fiber::yield() {
     // mark this fiber to Ready
     state_ = State::Ready;
 
-    if (run_scheduler_) {
-        SYLAR_DEBUG("idle scheduler child fiber");
+    if (run_scheduler_ && Scheduler::is_scheduler_fiber()) {
+        SYLAR_FMT_DEBUG("idle scheduler child fiber, fiber name: %s, fiber id: %d", name_.c_str(), id_);
         swapcontext(&ctx_, &(Scheduler::get_schedule_fiber()->ctx_));
     } else {
-        SYLAR_DEBUG("idle thread fiber");
+        SYLAR_FMT_DEBUG("idle thread fiber, fiber name: %s, fiber id: %d", name_.c_str(), id_);
         swapcontext(&ctx_, &t_thread_fiber->ctx_);
     }
 }

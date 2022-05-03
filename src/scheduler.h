@@ -50,6 +50,11 @@ public:
     virtual void schedule(std::function<void()> cb, int thread = -1);
 
     /**
+     * @brief check if current fiber is in main thread 
+     */
+    static bool is_scheduler_fiber();
+
+    /**
      * @brief Get the schedule fiber object
      */
     static Fiber::ptr get_schedule_fiber();
@@ -64,6 +69,8 @@ protected:
      * @brief idle scheduler
      */
     virtual void idle();
+
+
 
 private:
     /**
@@ -128,6 +135,23 @@ private:
         /// thread id
         int thread {0};
     };
+
+private:
+    /**
+     * @brief check is tasks is empty
+     */
+    bool is_tasks_empty();
+
+    /**
+     * @brief push task into list end
+     * @param task append task
+     */
+    void task_push(ScheduleTask::ptr task);
+
+    /**
+     * @brief pop task from end, if task is empty, call idle fiber
+     */
+    ScheduleTask::ptr task_pop();
 
 private:
     /// scheduler name 
