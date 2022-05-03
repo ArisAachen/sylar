@@ -85,6 +85,11 @@ void Scheduler::schedule(std::function<void ()> cb, int thr) {
     task_push(ScheduleTask::ptr(new ScheduleTask(cb, use_caller_,thr)));
 }
 
+void Scheduler::schedule(Fiber::ptr fiber, int thr) {
+    SYLAR_DEBUG("schedule add task");
+    task_push(ScheduleTask::ptr(new ScheduleTask(fiber, thr)));
+}
+
 // run scheduler
 void Scheduler::run() {
     SYLAR_INFO("scheduler run");

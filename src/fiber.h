@@ -15,6 +15,7 @@ namespace sylar {
 class Fiber : public std::enable_shared_from_this<Fiber> {
 public:
     typedef std::shared_ptr<Fiber> ptr;
+    typedef std::weak_ptr<Fiber> weak_ptr;
     enum class State { Ready, Running, Term };
 
     /**

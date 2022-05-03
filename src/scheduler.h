@@ -50,6 +50,13 @@ public:
     virtual void schedule(std::function<void()> cb, int thread = -1);
 
     /**
+     * @brief schedule func
+     * @param fiber fiber
+     * @param thread thread id
+     */
+    virtual void schedule(Fiber::ptr fiber = nullptr, int thread = -1);
+
+    /**
      * @brief check if current fiber is in main thread 
      */
     static bool is_scheduler_fiber();

@@ -4,9 +4,10 @@
 #include "fiber.h"
 #include "scheduler.h"
 
-#include <functional>
-#include <memory>
 #include <map>
+#include <list>
+#include <memory>
+#include <functional>
 
 namespace sylar {
 
@@ -62,7 +63,7 @@ private:
          * @param event add event index
          * @param callback event callback
          */
-        void add_event(Event event, std::function<void()> callback);
+        void add_event(Event event, Scheduler::ptr sched, std::function<void()> callback);
         
         /**
          * @brief del event from dispatcher
@@ -87,25 +88,31 @@ private:
          *          need to use context to store event callback
          */
         struct EventContext {
+            EventContext(Scheduler::ptr sched, std::function<void()> cb) {
+                scheduler = sched;
+                fiber = Fiber::ptr(new Fiber(cb, 0, sched->is_scheduler_fiber(), "fd fiber"));
+            }
             typedef std::shared_ptr<EventContext> ptr;
             /// event scheduler
             Scheduler::ptr scheduler {nullptr};
             /// callback fiber
             Fiber::ptr fiber {nullptr};
-            /// event callback
-            std::function<void()> cb {nullptr};
         };
         /// event fd
         int fd {0};
+        // dispatcher mutex
+        MutexType mutex_ {};
         /// event dispatch
-        std::map<Event, EventContext> dispatcher;
+        std::map<Event, EventContext::ptr> dispatcher;
     };
-
-
 
 private:
     /// epoll create fd
     int epfd_ {0};
+    /// fd context list
+    std::list<FdContext::ptr> fd_ctxs_;
+    /// fd mutex
+    MutexType mutex_ {};
 };
 
 
