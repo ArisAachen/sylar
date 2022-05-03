@@ -8,6 +8,7 @@
 #include <list>
 #include <memory>
 #include <functional>
+#include <sys/epoll.h>
 
 namespace sylar {
 
@@ -28,6 +29,13 @@ public:
      * @brief Destroy the IOManager object
      */
     ~IOManager();
+    
+    /**
+     * @brief 
+     * @param fd 
+     * @param events 
+     */
+    void del_fd_event(int fd, EPOLL_EVENTS events);
 
 protected:
     /**
@@ -37,7 +45,6 @@ protected:
     virtual void idle() override;
 
 public:
-
     /**
      * @brief epoll event
      */
@@ -48,7 +55,37 @@ public:
         READ = 0x1,
         /// write EPOLLOUT
         WRITE = 0x4,
+        // write and read
+        RW = READ | WRITE,
     };
+
+private:
+    /**
+     * @brief tranform epoll event to event
+     * @param events epoll events
+     */
+    static Event epoll_to_event(uint32_t events);
+
+    /**
+     * @brief tranform event to epoll event
+     * @param events 
+     */
+    static uint32_t event_to_epoll(Event events);
+
+public:
+    /**
+     * @brief use to add 
+     * @param fd 
+     * @param events 
+     */
+    void add_fd_event(int fd, Event events, std::function<void()>cb);
+
+    /**
+     * @brief 
+     * @param fd 
+     * @param events 
+     */
+    void del_fd_event(int fd, Event events);
 
 private:
     /**
@@ -70,6 +107,11 @@ private:
          * @param event del event index
          */
         void del_event(Event event);
+
+        /**
+         * @brief Get the event object
+         */
+        Event get_events();
 
         /**
          * @brief trigger event and call callback func
@@ -110,7 +152,7 @@ private:
     /// epoll create fd
     int epfd_ {0};
     /// fd context list
-    std::list<FdContext::ptr> fd_ctxs_;
+    std::vector<FdContext::ptr> fd_ctxs_;
     /// fd mutex
     MutexType mutex_ {};
 };

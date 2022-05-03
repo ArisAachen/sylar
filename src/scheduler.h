@@ -14,7 +14,7 @@
 namespace sylar {
 
 
-class Scheduler  {
+class Scheduler : public std::enable_shared_from_this<Scheduler> {
 public:
     typedef std::shared_ptr<Scheduler> ptr;
     typedef Mutex MutexType;
