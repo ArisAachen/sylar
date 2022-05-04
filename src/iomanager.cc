@@ -9,9 +9,11 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
-#include <exception>
 #include <memory>
 #include <utility>
+#include <exception>
+
+#include <fcntl.h>
 #include <sys/epoll.h>
 
 namespace sylar {
@@ -21,12 +23,10 @@ Scheduler(threads, use_caller, name) {
     SYLAR_INFO("io manager start");
     // create epoll fd
     epfd_ = epoll_create1(EPOLL_CLOEXEC);
-
-    // start scheduler
-    start();
 }
 
 IOManager::~IOManager() {
+    SYLAR_INFO("io manager destoried");
     // close epoll fd
     close(epfd_);
 }
@@ -59,18 +59,24 @@ void IOManager::idle() {
             epoll_event& event = events[index];
             // fd context
             FdContext* fd_ctx = static_cast<FdContext*>(event.data.ptr);
+            if (fd_ctx == nullptr) {
+                SYLAR_ERR("fd context convert failed");
+                continue;
+            }
             fd_ctx->trigger_event(epoll_to_event(event.events));
         }
 
         // should idle self
-        auto idle_fiber = Fiber::get_this();
-        idle_fiber->yield();
+        // auto idle_fiber = Fiber::get_this();
+        // idle_fiber->yield();
+        SYLAR_INFO(">>>>>> idle end");
+        break;
     }
 }  
 
 IOManager::Event IOManager::epoll_to_event(uint32_t ep_events) {
-    int events;
-    if (ep_events & (EPOLLIN | EPOLLHUP | EPOLLERR)) { 
+    int events = 0;
+    if (ep_events & (EPOLLIN | EPOLLHUP | EPOLLERR)) {
         events |= int(Event::READ);
     } 
     if (ep_events & (EPOLLOUT | EPOLLHUP | EPOLLERR)) {
@@ -98,6 +104,10 @@ uint32_t IOManager::event_to_epoll(IOManager::Event events) {
     return ep_events;
 }
 
+int IOManager::get_backend_fd() {
+    return epfd_;
+}
+
 // add fd event
 void IOManager::add_fd_event(int fd, Event event, std::function<void ()> cb) {
     // TODO: use vector as container has costs loss, should optimize here
@@ -116,7 +126,16 @@ void IOManager::add_fd_event(int fd, Event event, std::function<void ()> cb) {
     int op = EPOLL_CTL_MOD;
     // if not exist, create one
     if (ctx == nullptr) {
+        // set non-block
+        int flags = fcntl(fd, F_GETFL);
+        flags |= O_NONBLOCK;
+        int err = fcntl(fd, F_SETFL, flags);
+        if (err == -1) {
+            SYLAR_FMT_ERR("set fd non-block failed, fd: %d, err: %s", fd, strerror(errno));
+        }
+        // set fd context
         ctx = FdContext::ptr(new FdContext);
+        ctx->fd = fd;
         fd_ctxs_.push_back(ctx);
         op = EPOLL_CTL_ADD;
     }
@@ -124,7 +143,7 @@ void IOManager::add_fd_event(int fd, Event event, std::function<void ()> cb) {
     ctx->add_event(event, shared_from_this(), cb);
     // operate epoll 
     struct epoll_event ep;
-    ep.events = event_to_epoll(ctx->get_events());
+    ep.events = event_to_epoll(event);
     ep.data.ptr = ctx.get();
     int err = epoll_ctl(epfd_, op, fd, &ep);
     // it is ok, because signal will interrupt
@@ -232,7 +251,9 @@ void IOManager::FdContext::trigger_event(Event event) {
     try {
         // try to get context
         auto ctx = dispatcher.at(event);
-        ctx->scheduler->schedule(ctx->fiber);
+        auto scheduler = ctx->scheduler.lock();
+        if (scheduler)
+            scheduler->schedule(ctx->fiber);
     } catch (std::exception& e) {
         SYLAR_FMT_ERR("unexpected event is triggered, fd: %d, event: %d", fd, event);
     }

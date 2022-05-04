@@ -28,15 +28,8 @@ public:
     /**
      * @brief Destroy the IOManager object
      */
-    ~IOManager();
+    virtual~IOManager();
     
-    /**
-     * @brief 
-     * @param fd 
-     * @param events 
-     */
-    void del_fd_event(int fd, EPOLL_EVENTS events);
-
 protected:
     /**
      * @brief idle to add new tasks from epoll wait
@@ -50,11 +43,11 @@ public:
      */
     enum class Event {
         /// none event
-        NONE = 0x0,
+        NONE = 0,
         /// read EPOLLIN
-        READ = 0x1,
+        READ = 1,
         /// write EPOLLOUT
-        WRITE = 0x4,
+        WRITE = 4,
         // write and read
         RW = READ | WRITE,
     };
@@ -73,6 +66,11 @@ private:
     static uint32_t event_to_epoll(Event events);
 
 public:
+    /**
+     * @brief Get the epoll backend fd object
+     */
+    virtual int get_backend_fd();
+
     /**
      * @brief use to add 
      * @param fd 
@@ -136,7 +134,7 @@ private:
             }
             typedef std::shared_ptr<EventContext> ptr;
             /// event scheduler
-            Scheduler::ptr scheduler {nullptr};
+            Scheduler::weak_ptr scheduler;
             /// callback fiber
             Fiber::ptr fiber {nullptr};
         };

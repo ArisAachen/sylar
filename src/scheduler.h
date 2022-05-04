@@ -17,6 +17,8 @@ namespace sylar {
 class Scheduler : public std::enable_shared_from_this<Scheduler> {
 public:
     typedef std::shared_ptr<Scheduler> ptr;
+    typedef std::weak_ptr<Scheduler> weak_ptr;
+
     typedef Mutex MutexType;
     typedef ConditionBlock ConditionType;
     /**
@@ -76,8 +78,6 @@ protected:
      * @brief idle scheduler
      */
     virtual void idle();
-
-
 
 private:
     /**

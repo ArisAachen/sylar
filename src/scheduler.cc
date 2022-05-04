@@ -99,8 +99,10 @@ void Scheduler::run() {
     while(true) {
         // check if is empty
         ScheduleTask::ptr task = task_pop();
-        task->execute();
+        if (task != nullptr)
+            task->execute();
     }
+    SYLAR_INFO("scheduler stop");
 }
 
 void Scheduler::idle() {
@@ -113,7 +115,7 @@ void Scheduler::idle() {
 
 bool Scheduler::is_tasks_empty() {
     MutexType::Lock lock(mutex_);
-    return tasks_.size() == 0;
+    return tasks_.empty();
 }
 
 void Scheduler::task_push(ScheduleTask::ptr task) {
@@ -132,7 +134,8 @@ Scheduler::ScheduleTask::ptr Scheduler::task_pop() {
     // if is not empty， pop one elem
     MutexType::Lock lock(mutex_);
     ScheduleTask::ptr task = tasks_.front();
-    tasks_.pop_front();
+    if (!tasks_.empty())
+        tasks_.pop_front();
     return task;
 }
 

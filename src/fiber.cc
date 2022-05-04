@@ -61,6 +61,7 @@ Fiber::Fiber() {
     }
     ++global_fiber_count;
     id_ = global_fiber_id++;
+    name_ = "main";
 
     SYLAR_FMT_DEBUG("create main fiber, fiber id: %d", id_);
 }
@@ -68,9 +69,6 @@ Fiber::Fiber() {
 Fiber::~Fiber() {
     SYLAR_FMT_INFO("fiber has been destoried, fiber name: %s, fiber id: %d", name_.c_str(), id_);
     global_fiber_count--;
-    if (name_ == "idle") {
-        SYLAR_FMT_DEBUG("idle has been called, fiber id: %d", id_);
-    }
     if (stack_) {
         StackAllocator::Dealloc(stack_);
     }
