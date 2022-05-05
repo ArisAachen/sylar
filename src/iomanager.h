@@ -130,7 +130,16 @@ private:
         struct EventContext {
             EventContext(Scheduler::ptr sched, std::function<void()> cb) {
                 scheduler = sched;
-                fiber = Fiber::ptr(new Fiber(cb, 0, sched->is_scheduler_fiber(), "fd fiber"));
+                // use func wrap
+                auto wrap = [=] () {
+                    // should make sure, this func can be call circle, or it will exist
+                    // ref to 异常处理日记.md note.10
+                    while (true) {
+                        cb();
+                        Fiber::get_this()->yield();
+                    }
+                };
+                fiber = Fiber::ptr(new Fiber(wrap, 0, sched->is_scheduler_fiber(), "fd fiber"));
             }
             typedef std::shared_ptr<EventContext> ptr;
             /// event scheduler

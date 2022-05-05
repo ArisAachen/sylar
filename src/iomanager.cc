@@ -20,7 +20,7 @@ namespace sylar {
 
 IOManager::IOManager(size_t threads, bool use_caller, const std::string& name): 
 Scheduler(threads, use_caller, name) {
-    SYLAR_INFO("io manager start");
+    SYLAR_INFO("io manager create");
     // create epoll fd
     epfd_ = epoll_create1(EPOLL_CLOEXEC);
 }
@@ -33,6 +33,7 @@ IOManager::~IOManager() {
 
 // idle to wait more event
 void IOManager::idle() {
+    SYLAR_DEBUG("io manager idle start");
     // epoll max events
     const uint64_t MAX_EVENTS = 256;
     epoll_event* events = new epoll_event[MAX_EVENTS];
@@ -69,7 +70,7 @@ void IOManager::idle() {
         // should idle self
         // auto idle_fiber = Fiber::get_this();
         // idle_fiber->yield();
-        SYLAR_INFO(">>>>>> idle end");
+        SYLAR_INFO("io manager idle end");
         break;
     }
 }  

@@ -49,7 +49,7 @@ Fiber::Fiber(std::function<void()>cb, size_t stack_size, bool run_scheduler, con
 
     // make context
     makecontext(&ctx_, &Fiber::main_func, 0);
-    SYLAR_FMT_DEBUG("create child fiber, fiber name: %s, fiber id: %d", name_.c_str(), id_);
+    SYLAR_FMT_DEBUG("create child fiber, fiber name: %s, use_caller: %d, fiber id: %d", name_.c_str(), run_scheduler_, id_);
 }
 
 Fiber::Fiber() {
@@ -69,6 +69,9 @@ Fiber::Fiber() {
 Fiber::~Fiber() {
     SYLAR_FMT_INFO("fiber has been destoried, fiber name: %s, fiber id: %d", name_.c_str(), id_);
     global_fiber_count--;
+    if (name_ == "main") {
+        SYLAR_DEBUG("ok");
+    }
     if (stack_) {
         StackAllocator::Dealloc(stack_);
     }
@@ -89,7 +92,6 @@ void Fiber::reset(std::function<void ()> cb) {
 }
 
 void Fiber::main_func() {
-
     // get curent fiber
     auto fiber = get_this();
 
@@ -123,7 +125,7 @@ void Fiber::resume() {
     // mark this fiber to running
     state_ = State::Running;
     // if child fiber run in scheduler
-    if (run_scheduler_ && Scheduler::is_scheduler_fiber()) {
+    if (run_scheduler_ && Scheduler::is_scheduler_fiber()) {        
         SYLAR_FMT_DEBUG("resume scheduler child fiber, fiber name: %s, fiber id: %d", name_.c_str(), id_);
         swapcontext(&(Scheduler::get_schedule_fiber()->ctx_), &ctx_);
     } else {

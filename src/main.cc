@@ -72,11 +72,15 @@ void io_manager_test() {
         int apt_fd = accept(listen_fd, nullptr, nullptr);
         SYLAR_FMT_DEBUG("accept from listen fd successfully, fd: %d", apt_fd);
         // read and write
-        auto read_callback = [&]() {
-            SYLAR_DEBUG("read callback is called");
+        auto read_callback = [=]() {
+            SYLAR_FMT_DEBUG("read callback is called, fd: %d", apt_fd);
             char buf[512];
-            read(apt_fd, buf, 512);
-            SYLAR_FMT_DEBUG(">>>>>> receive message from remote, message: %s", buf);
+            int count = read(apt_fd, buf, 512);
+            if (count == -1) {
+                SYLAR_FMT_ERR("read from remote failed, err: %s", strerror(errno));
+            } else {
+                SYLAR_FMT_DEBUG(">>>>>> receive message from remote, message: %s", buf);
+            }
         };
         manager->add_fd_event(apt_fd, sylar::IOManager::Event::READ, read_callback);
     };
@@ -92,9 +96,9 @@ int main () {
     // scheduler_thread_test();
     // scheduler_test();
 
-    // SYLAR_INFO("++++++ io test start");
+    SYLAR_INFO("++++++ io test start");
     io_manager_test();
-    // SYLAR_INFO("++++++ io test end");
+    SYLAR_INFO("++++++ io test end");
 
     return 1;
 }

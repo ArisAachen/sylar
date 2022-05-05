@@ -20,6 +20,7 @@ thread_num_(threads) , use_caller_(use_caller), name_(name) {
     SYLAR_ASSERT(thread_num_ > 0);
     // check if use main thread as fiber scheduler
     if (use_caller_) {
+        is_scheduler = true;
         thread_num_--;
         schedule_fiber = Fiber::ptr(new Fiber(std::bind(&Scheduler::run, this), 0, false, "Scheduler fiber"));
     }
@@ -30,6 +31,7 @@ thread_num_(threads) , use_caller_(use_caller), name_(name) {
         // push thread into vec
         threads_.push_back(thread);
     }
+    SYLAR_FMT_DEBUG("scheduler create, scheduler name: %s, user caller: %d, thread count: %d", name_.c_str(), use_caller_, thread_num_);
 }
 
 Scheduler::~Scheduler() {
