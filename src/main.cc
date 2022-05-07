@@ -29,8 +29,7 @@ void fiber_test() {
 }
 
 void scheduler_thread_test() {
-    sylar::Scheduler::ptr schedule(new sylar::Scheduler(2, false));
-    schedule->start();
+    sylar::Scheduler::ptr schedule(new sylar::Scheduler(1, false));
 
     for (int index = 0; index < 2; index++) {
         schedule->schedule(test);
@@ -41,6 +40,8 @@ void scheduler_thread_test() {
     for (int index = 0; index < 2; index++) {
         schedule->schedule(test);
     }
+
+    schedule->start();
 }
 
 void scheduler_test() {
@@ -52,7 +53,7 @@ void scheduler_test() {
 }
 
 void io_manager_test() {
-    sylar::IOManager::ptr manager(new sylar::IOManager(1, true, "IO Manager"));
+    sylar::IOManager::ptr manager(new sylar::IOManager(10, false, "IO Manager"));
     // create socket
     int listen_fd = socket(AF_INET, SOCK_STREAM, 0);
     sockaddr_in server_addr;
@@ -65,11 +66,15 @@ void io_manager_test() {
         return;
     }
     // listen socket 
-    listen(listen_fd, 10);
-    auto listen_callback = [&]() {
+    listen(listen_fd, 255);
+    auto listen_callback = [=]() {
         // accept from listen fd
         SYLAR_DEBUG("listen callback is called");
         int apt_fd = accept(listen_fd, nullptr, nullptr);
+        if (apt_fd == -1) {
+            SYLAR_FMT_ERR("accept from listen fd failed, err: %s", strerror(errno));
+            return;
+        }
         SYLAR_FMT_DEBUG("accept from listen fd successfully, fd: %d", apt_fd);
         // read and write
         auto read_callback = [=]() {
@@ -78,8 +83,11 @@ void io_manager_test() {
             int count = read(apt_fd, buf, 512);
             if (count == -1) {
                 SYLAR_FMT_ERR("read from remote failed, err: %s", strerror(errno));
+            } else if (count == 0) {
+                SYLAR_FMT_DEBUG("reomte client closed, fd: %d", apt_fd);
+                manager->del_fd_event(apt_fd, sylar::IOManager::Event::READ);
             } else {
-                SYLAR_FMT_DEBUG(">>>>>> receive message from remote, message: %s", buf);
+                SYLAR_FMT_DEBUG("receive message from remote, message: %s", buf);
             }
         };
         manager->add_fd_event(apt_fd, sylar::IOManager::Event::READ, read_callback);
@@ -96,9 +104,7 @@ int main () {
     // scheduler_thread_test();
     // scheduler_test();
 
-    SYLAR_INFO("++++++ io test start");
     io_manager_test();
-    SYLAR_INFO("++++++ io test end");
 
     return 1;
 }

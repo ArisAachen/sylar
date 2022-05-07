@@ -24,7 +24,7 @@ void Thread::run() {
     if (err != 0)
         SYLAR_FMT_ERR("create failed, thread name: %s, err: %s", name_.c_str(), strerror(errno));
     running_ = true;
-    SYLAR_FMT_INFO("create thread id: %lld", thread_id_);
+    SYLAR_FMT_INFO("create thread id: %ld", thread_id_);
 }
 
 // stop thread
@@ -42,7 +42,7 @@ void Thread::join() {
     int ret = pthread_join(thread_id_, nullptr);
     if (ret != 0)
         SYLAR_FMT_ERR("pthread join failed, thread id: %d, err: %s", thread_id_, strerror(errno));
-    SYLAR_DEBUG("pthread join end");
+    // SYLAR_DEBUG("pthread join end");
 }
 
 // swap func

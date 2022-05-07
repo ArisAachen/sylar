@@ -70,7 +70,7 @@ Fiber::~Fiber() {
     SYLAR_FMT_INFO("fiber has been destoried, fiber name: %s, fiber id: %d", name_.c_str(), id_);
     global_fiber_count--;
     if (name_ == "main") {
-        SYLAR_DEBUG("ok");
+        // SYLAR_DEBUG("ok");
     }
     if (stack_) {
         StackAllocator::Dealloc(stack_);
@@ -136,15 +136,14 @@ void Fiber::resume() {
 
 void Fiber::yield() {
     SYLAR_ASSERT(state_ == State::Running || state_ == State::Term);
-    // set main fiber as current fiber
-    set_this(t_thread_fiber);
-    // mark this fiber to Ready
     state_ = State::Ready;
 
     if (run_scheduler_ && Scheduler::is_scheduler_fiber()) {
+        set_this(Scheduler::get_schedule_fiber());
         SYLAR_FMT_DEBUG("idle scheduler child fiber, fiber name: %s, fiber id: %d", name_.c_str(), id_);
         swapcontext(&ctx_, &(Scheduler::get_schedule_fiber()->ctx_));
     } else {
+        set_this(t_thread_fiber);
         SYLAR_FMT_DEBUG("idle thread fiber, fiber name: %s, fiber id: %d", name_.c_str(), id_);
         swapcontext(&ctx_, &t_thread_fiber->ctx_);
     }

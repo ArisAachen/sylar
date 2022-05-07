@@ -4,8 +4,11 @@
 #include "mutex.h"
 #include "thread.h"
 
+#include <cstddef>
+#include <memory>
 #include <string>
 #include <functional>
+#include <unistd.h>
 
 namespace sylar {
 
@@ -35,10 +38,7 @@ thread_num_(threads) , use_caller_(use_caller), name_(name) {
 }
 
 Scheduler::~Scheduler() {
-    for (auto& thread : threads_) {
-        thread->join();
-    }
-    SYLAR_DEBUG("schedule destoried");
+    // SYLAR_DEBUG("schedule destoried");
 }
 
 // start scheduler
@@ -60,6 +60,11 @@ void Scheduler::start() {
         Fiber::get_this();
         // begin to schedule
         schedule_fiber->resume();
+    }
+
+    // join to wait here
+    for (auto& thread : threads_) {
+        thread->join();
     }
 }
 
@@ -83,12 +88,12 @@ Fiber::ptr Scheduler::get_schedule_fiber() {
 }
 
 void Scheduler::schedule(std::function<void ()> cb, int thr) {
-    SYLAR_DEBUG("schedule add task");
+    // SYLAR_DEBUG("schedule add task");
     task_push(ScheduleTask::ptr(new ScheduleTask(cb, use_caller_,thr)));
 }
 
 void Scheduler::schedule(Fiber::ptr fiber, int thr) {
-    SYLAR_DEBUG("schedule add task");
+    // SYLAR_DEBUG("schedule add task");
     task_push(ScheduleTask::ptr(new ScheduleTask(fiber, thr)));
 }
 
@@ -101,6 +106,8 @@ void Scheduler::run() {
     while(true) {
         // check if is empty
         ScheduleTask::ptr task = task_pop();
+        // std::weak_ptr<ScheduleTask> task_weak(task);
+        // SYLAR_FMT_DEBUG(">>>>>> schedule task, expired: %d, use count: %d", task_weak.expired(), task_weak.use_count());
         if (task != nullptr)
             task->execute();
     }
@@ -112,7 +119,7 @@ void Scheduler::idle() {
     // wait here
     ConditionBlock::Block block(cond_);
     block.wait();
-    SYLAR_DEBUG("at least one task is added, exit idle");
+    // SYLAR_DEBUG("at least one task is added, exit idle");
 }
 
 bool Scheduler::is_tasks_empty() {
@@ -135,10 +142,13 @@ Scheduler::ScheduleTask::ptr Scheduler::task_pop() {
     }
     // if is not empty， pop one elem
     MutexType::Lock lock(mutex_);
-    ScheduleTask::ptr task = tasks_.front();
-    if (!tasks_.empty())
+    if (!tasks_.empty()) {
+        ScheduleTask::ptr task = tasks_.front();
         tasks_.pop_front();
-    return task;
+        return task;
+    }
+    SYLAR_WARN("non task is poped");
+    return nullptr;
 }
 
 }

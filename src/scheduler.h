@@ -108,6 +108,10 @@ private:
             thread = thr;
         }
 
+        ~ScheduleTask() {
+            SYLAR_FMT_DEBUG("schedule rask destoried, fiber id: %d", fiber->get_id());
+        }
+
         /**
          * @brief reset fiber
          * @param f fiber 

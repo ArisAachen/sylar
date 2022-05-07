@@ -128,24 +128,15 @@ private:
          *          need to use context to store event callback
          */
         struct EventContext {
-            EventContext(Scheduler::ptr sched, std::function<void()> cb) {
+            EventContext(Scheduler::ptr sched, std::function<void()> f) {
                 scheduler = sched;
-                // use func wrap
-                auto wrap = [=] () {
-                    // should make sure, this func can be call circle, or it will exist
-                    // ref to 异常处理日记.md note.10
-                    while (true) {
-                        cb();
-                        Fiber::get_this()->yield();
-                    }
-                };
-                fiber = Fiber::ptr(new Fiber(wrap, 0, sched->is_scheduler_fiber(), "fd fiber"));
+                cb = f;
             }
             typedef std::shared_ptr<EventContext> ptr;
             /// event scheduler
             Scheduler::weak_ptr scheduler;
-            /// callback fiber
-            Fiber::ptr fiber {nullptr};
+            // callback func
+            std::function<void()> cb;
         };
         /// event fd
         int fd {0};
