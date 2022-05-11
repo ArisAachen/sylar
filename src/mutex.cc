@@ -30,6 +30,26 @@ void Mutex::unlock() {
     pthread_mutex_unlock(&mutex_);
 }
 
+RWMutex::RWMutex() {
+    pthread_rwlock_init(&lock_, nullptr);
+}
+
+RWMutex::~RWMutex() {
+    pthread_rwlock_destroy(&lock_);
+}
+
+void RWMutex::rdlock() {
+    pthread_rwlock_rdlock(&lock_);
+}
+
+void RWMutex::wrlock() {
+    pthread_rwlock_wrlock(&lock_);
+}
+
+void RWMutex::unlock() {
+    pthread_rwlock_unlock(&lock_);
+}
+
 ConditionBlock::ConditionBlock(Mutex& mutex) {
     // init condition
     pthread_cond_init(&cond_, nullptr);

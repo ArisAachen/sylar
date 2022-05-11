@@ -1,7 +1,9 @@
 #include "utils.h"
 #include <bits/types/FILE.h>
+#include <bits/types/struct_timespec.h>
 #include <cstdint>
 #include <cstdlib>
+#include <ctime>
 #include <fstream>
 #include <ios>
 #include <string>
@@ -57,6 +59,13 @@ const std::string SystemInfo::user() {
             file.close();
         }
         return user;    
+}
+
+// get millionseconds
+uint64_t SystemInfo::get_elapsed() {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
+    return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
 }
 
 // get pid 

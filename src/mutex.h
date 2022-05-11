@@ -57,6 +57,77 @@ private:
 };
 
 template<typename T>
+class ReadScopeLockImpl {
+public:
+    ReadScopeLockImpl(T& lck): lock_(lck) {
+        lock();
+    }
+
+    ~ReadScopeLockImpl() {
+        unlock();
+    }
+
+    void lock() {
+        // check if is locked
+        if (locked_) 
+            return;
+        // lock 
+        locked_ = true;
+        lock_.rdlock();
+    }
+
+    void unlock() {
+        // check if is unlocked
+        if (!locked_)
+            return;
+        locked_ = false;
+        lock_.unlock();           
+    }
+
+private:
+    /// lock member
+    T& lock_;
+    /// lock statae
+    bool locked_ {false};
+};
+
+template<typename T>
+class WriteScopeLockImpl {
+public:
+    WriteScopeLockImpl(T& lck): lock_(lck) {
+        lock();
+    }
+
+    ~WriteScopeLockImpl() {
+        unlock();
+    }
+
+    void lock() {
+        // check if is locked
+        if (locked_) 
+            return;
+        // lock 
+        locked_ = true;
+        lock_.wrlock();
+    }
+
+    void unlock() {
+        // check if is unlocked
+        if (!locked_)
+            return;
+        locked_ = false;
+        lock_.unlock();           
+    }
+
+private:
+    /// lock member
+    T& lock_;
+    /// lock statae
+    bool locked_ {false};
+};
+
+
+template<typename T>
 class ConditionImpl {
 public:
     /**
@@ -101,6 +172,40 @@ private:
 };
 
 class ConditionBlock;
+
+class RWMutex : Noncopyable {
+public:
+    typedef ReadScopeLockImpl<RWMutex> ReadLock;
+    typedef WriteScopeLockImpl<RWMutex> WriteLock;
+
+    /**
+     * @brief Construct a new RWMutex object
+     */
+    RWMutex();
+
+    /**
+     * @brief add read lock
+     */
+    void rdlock();
+
+    /**
+     * @brief add write lock
+     */
+    void wrlock();
+
+    /**
+     * @brief unlock lock
+     */
+    void unlock();
+
+    /**
+     * @brief Destroy the RWMutex object
+     */
+    ~RWMutex();
+private:
+    pthread_rwlock_t lock_;
+};
+
 
 class Mutex : Noncopyable {
 public:

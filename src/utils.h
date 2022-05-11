@@ -57,11 +57,15 @@ public:
     static uint64_t pid();
 
     /**
+     * @brief Get the elapsed object
+     */
+    static uint64_t get_elapsed();
+
+    /**
      * @brief Get process name
      */
     static const std::string process_name();
 };
-
 
 
 }
