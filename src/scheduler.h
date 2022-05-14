@@ -14,7 +14,7 @@
 namespace sylar {
 
 
-class Scheduler : public std::enable_shared_from_this<Scheduler> {
+class Scheduler : virtual public std::enable_shared_from_this<Scheduler> {
 public:
     typedef std::shared_ptr<Scheduler> ptr;
     typedef std::weak_ptr<Scheduler> weak_ptr;
@@ -67,6 +67,11 @@ public:
      * @brief Get the schedule fiber object
      */
     static Fiber::ptr get_schedule_fiber();
+
+    /**
+     * @brief Get the scheduler object
+     */
+    static Scheduler::ptr get_scheduler();
 
 protected:
     /**

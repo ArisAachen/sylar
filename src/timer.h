@@ -69,7 +69,7 @@ private:
 
 
 // timer manager
-class TimerManager : std::enable_shared_from_this<TimerManager> {
+class TimerManager : virtual public std::enable_shared_from_this<TimerManager> {
 public: 
     typedef std::shared_ptr<TimerManager> ptr;
     typedef std::weak_ptr<TimerManager> weak_ptr;
@@ -114,7 +114,7 @@ public:
      * @param[in] cb 
      * @param[in] name 
      */
-    void add_condition_timer(uint64_t ms, bool recurring, std::weak_ptr<void> cond, 
+    void add_condition_timer(uint64_t ms, bool recurring, std::shared_ptr<void> cond, 
         std::function<void()> cb, std::string name);
 
     /**

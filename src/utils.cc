@@ -11,6 +11,8 @@
 
 namespace sylar {
 
+static bool is_hook_enabled = false;
+
 const std::string StringUtils::sprintf(const char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
@@ -75,6 +77,14 @@ uint64_t SystemInfo::pid() {
 
 const std::string SystemInfo::process_name() {
     return "proc";
+}
+
+bool SystemInfo::get_hook_enabled() {
+    return is_hook_enabled;
+}
+
+void SystemInfo::set_hook_enabled(bool enabled) {
+    is_hook_enabled = enabled;
 }
 
 }

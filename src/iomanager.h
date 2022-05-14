@@ -3,6 +3,8 @@
 
 #include "fiber.h"
 #include "scheduler.h"
+#include "singleton.h"
+#include "timer.h"
 
 #include <map>
 #include <list>
@@ -13,9 +15,10 @@
 namespace sylar {
 
 
-class IOManager : public Scheduler {
+class IOManager : public Scheduler, public TimerManager {
 public:
     typedef std::shared_ptr<IOManager> ptr;
+    typedef Mutex MutexType;
 
     /**
      * @brief Construct a new IOManager object
@@ -76,7 +79,7 @@ public:
      * @param fd 
      * @param events 
      */
-    void add_fd_event(int fd, Event events, std::function<void()>cb);
+    void add_fd_event(int fd, Event events, std::function<void()>cb = nullptr);
 
     /**
      * @brief 
@@ -91,6 +94,7 @@ private:
      * @details every fd context store all event and their callback
      */
     struct FdContext {
+        typedef Mutex MutexType;
         typedef std::shared_ptr<FdContext> ptr;
 
         /**
@@ -156,7 +160,7 @@ private:
 };
 
 
-
+typedef Singleton<IOManager> IOMgr;
 
 }
 

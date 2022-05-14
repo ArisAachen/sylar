@@ -4,10 +4,12 @@
 #include "mutex.h"
 #include "thread.h"
 
+#include <cctype>
 #include <cstddef>
 #include <memory>
 #include <string>
 #include <functional>
+
 #include <unistd.h>
 
 namespace sylar {
@@ -16,6 +18,8 @@ namespace sylar {
 static thread_local Fiber::ptr schedule_fiber = nullptr;
 /// indicate if current is main thread as scheduler
 static thread_local bool is_scheduler = false;
+/// scheduler
+static Scheduler::ptr main_scheduler;
 
 Scheduler::Scheduler(size_t threads, bool use_caller, const std::string& name):
 thread_num_(threads) , use_caller_(use_caller), name_(name) {

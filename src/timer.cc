@@ -68,9 +68,8 @@ void TimerManager::del_timer(Timer::ptr timer) {
 }
 
 // condition execute
-static void OnTimer(std::weak_ptr<void> cond, std::function<void()> cb) {
-    auto tmp = cond.lock();
-    if (tmp) 
+static void OnTimer(std::shared_ptr<void> cond, std::function<void()> cb) {
+    if (cond) 
         cb();
 }
 
@@ -100,7 +99,7 @@ void TimerManager::list_expired_cb(std::vector<std::function<void()>> cbs) {
 }
 
 // add condition
-void TimerManager::add_condition_timer(uint64_t ms, bool recurring, std::weak_ptr<void> cond, 
+void TimerManager::add_condition_timer(uint64_t ms, bool recurring, std::shared_ptr<void> cond, 
     std::function<void ()> cb, std::string name) {
     // use wrap func
     auto func_wrap = std::bind(&OnTimer, cond, cb);

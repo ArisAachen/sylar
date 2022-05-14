@@ -65,6 +65,17 @@ public:
      * @brief Get process name
      */
     static const std::string process_name();
+
+    /**
+     * @brief Get the hook enabled object
+     */
+    static bool get_hook_enabled();
+
+    /**
+     * @brief Set the hook enabled object
+     * @param[in] enabled 
+     */
+    static void set_hook_enabled(bool enabled);
 };
 
 

@@ -139,7 +139,7 @@ void IOManager::add_fd_event(int fd, Event event, std::function<void ()> cb) {
         op = EPOLL_CTL_ADD;
     }
     // add fd event to io manager
-    ctx->add_event(event, shared_from_this(), cb);
+    ctx->add_event(event, Scheduler::shared_from_this(), cb);
     // operate epoll 
     struct epoll_event ep;
     ep.events = EPOLLIN | EPOLLET;
