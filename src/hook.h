@@ -19,10 +19,10 @@ extern nanosleep_func nanosleep_f;
 typedef int (*socket_func)(int domain, int type, int protocol);
 extern socket_func socket_f;
 
-typedef int (*connect_func)(int sockfd, struct sockaddr *addr, socklen_t addrlen);
+typedef int (*connect_func)(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 extern connect_func connect_f;
 
-typedef int (*accept_func)(int sockfd, struct sockaddr *addr, socklen_t addrlen);
+typedef int (*accept_func)(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
 extern accept_func accept_f;
 
 typedef ssize_t (*read_func)(int sockfd, void *buf, size_t count);

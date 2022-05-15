@@ -7,12 +7,16 @@
 #include "fdmanager.h"
 
 #include <cerrno>
+#include <cstddef>
 #include <cstdio>
 #include <cstring>
 #include <memory>
 #include <string>
 
 #include <dlfcn.h>
+#include <unistd.h>
+#include <sys/socket.h>
+
 
 #define HOOK_FUNC(XX) \
     XX(sleep)   \
@@ -95,7 +99,7 @@ static ssize_t do_io(int fd, OriginFunc func, sylar::IOManager::Event event, con
         }, hook_name);
     }
     // TODO: callback, should optimize code here
-    sylar::IOMgr::get_instance()->add_fd_event(fd, event, [fd, func, hook_name, args...]() {
+    sylar::IOMgr::get_instance()->add_fd_event(fd, event, [fd, func, hook_name, &args...]() {
         // use to execute found
         ssize_t count = func(fd, std::forward<Args>(args)...);
         // continue wait
@@ -155,7 +159,37 @@ int socket(int domain, int type, int protocol) {
     }
     // add to fd manager
     sylar::FdMgr::get_instance()->add_fdctx(fd);
+    SYLAR_FMT_DEBUG("socket add to fd manager successfully, fd: %d", fd);
     return fd;
 }
 
+int connect(int fd, const struct sockaddr *addr, socklen_t addrlen) {
+    SYLAR_FMT_DEBUG("connect, fd: %d", fd);
+    return connect_f(fd, addr, addrlen);
 }
+
+int accept(int fd, struct sockaddr *addr, socklen_t *addrlen) {
+    int accept_fd = do_io(fd, accept_f, sylar::IOManager::Event::READ, "accept", addr, addrlen);
+    if (accept_fd == -1) {
+        SYLAR_FMT_ERR("accept failed, fd: %d, err: %s", fd, strerror(errno));
+        return -1;
+    }
+    // need to hook
+    if (sylar::SystemInfo::get_hook_enabled()) {
+        sylar::FdMgr::get_instance()->add_fdctx(accept_fd);
+        SYLAR_FMT_DEBUG("accept add to fd manager successfully, fd: %d, accept fd: %d", fd, accept_fd);
+    }
+    return accept_fd;
+}
+
+ssize_t read(int fd, void *buf, size_t bytes) {
+    return do_io(fd, read_f, sylar::IOManager::Event::READ, "read", buf, bytes);
+}
+
+ssize_t readv(int fd, const struct iovec *iov, int iovcnt) {
+    return do_io(fd, readv_f, sylar::IOManager::Event::READ, "readv", iov, iovcnt);
+}
+
+
+}
+
