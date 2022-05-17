@@ -186,9 +186,55 @@ ssize_t read(int fd, void *buf, size_t bytes) {
     return do_io(fd, read_f, sylar::IOManager::Event::READ, "read", buf, bytes);
 }
 
+int close(int fd) {
+    // check if need use hook here
+    if (!sylar::SystemInfo::get_hook_enabled()) {
+        SYLAR_FMT_DEBUG("close dont need use hook, fd: %d", fd);
+        return close_f(fd);
+    }
+    int result = close_f(fd);
+    if (result == -1)
+        SYLAR_FMT_ERR("hook close fd failed, fd: %d, err: %s", fd, strerror(errno));
+    sylar::FdMgr::get_instance()->del_fdctx(fd);
+}
+
 ssize_t readv(int fd, const struct iovec *iov, int iovcnt) {
     return do_io(fd, readv_f, sylar::IOManager::Event::READ, "readv", iov, iovcnt);
 }
+
+ssize_t recv(int fd, void *buf, size_t len, int flags) {
+    return do_io(fd, recv_f, sylar::IOManager::Event::READ, "recv", buf, len, flags);
+}
+
+ssize_t recvfrom(int fd, void * buf, size_t len, int flags, struct sockaddr * addr, socklen_t *addrlen) {
+    return do_io(fd, recvfrom_f, sylar::IOManager::Event::READ, "recvfrom", buf, len, 
+        flags, addr, addrlen);
+}
+
+ssize_t recvmsg(int fd, struct msghdr * msg, int flags) {
+    return do_io(fd, recvmsg_f, sylar::IOManager::Event::READ, "recvmsg", msg, flags);
+}
+
+ssize_t write(int fd, const void *buf, size_t nbyte) {
+    return do_io(fd, write_f, sylar::IOManager::Event::WRITE, "write", buf, nbyte);
+}
+
+ssize_t writev(int fd, const struct iovec *iov, int iovcnt) {
+    return do_io(fd, writev_f, sylar::IOManager::Event::WRITE, "writev", iov, iovcnt);
+}
+
+ssize_t send(int fd, const void * buf, size_t len, int flags) {
+    return do_io(fd, send_f, sylar::IOManager::Event::WRITE, "send", buf, len, flags);
+}
+
+ssize_t sendto(int fd, const void * buf, size_t len, int flags, const struct sockaddr *addr, socklen_t addrlen) {
+    return do_io(fd, sendto_f, sylar::IOManager::Event::WRITE, "sendto", buf, len, flags, addr, addrlen);
+}
+
+ssize_t sendmsg(int fd, const struct msghdr * msg, int flags) {
+    return do_io(fd, sendmsg_f, sylar::IOManager::Event::WRITE, "sendmsg", msg, flags);
+}
+
 
 
 }
