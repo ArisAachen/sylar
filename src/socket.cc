@@ -1,6 +1,8 @@
 #include "socket.h"
 #include "address.h"
+#include "iomanager.h"
 #include "log.h"
+#include "utils.h"
 
 #include <cstring>
 #include <sys/socket.h>
@@ -107,6 +109,120 @@ bool Socket::connect(Address::ptr addr) {
     connected_ = true;
     SYLAR_FMT_DEBUG("connect socket success, fd: %d, server: %s", fd_, addr->to_string().c_str());
     return true;
+}
+
+bool Socket::send(void* buf, size_t len, int flags) {
+    // use send must make sure socket is connected
+    if (!connected_) {
+        SYLAR_FMT_ERR("send buf failed, fd: %d, err: %s", fd_, "not connected yet");
+        return false;
+    }
+    if (::send(fd_, buf, len, flags) == -1) {
+        SYLAR_FMT_ERR("send buf failed, fd: %d, err: %s", fd_, strerror(errno));
+        return false;
+    }
+    SYLAR_FMT_DEBUG("send buf success, fd: %d", fd_);
+    return true;    
+}
+
+bool Socket::send(iovec *vec, size_t count, int flags) {
+    // use send must make sure socket is connected
+    if (!connected_) {
+        SYLAR_FMT_ERR("send vec failed, fd: %d, err: %s", fd_, "not connected yet");
+        return false;
+    }
+    if (::send(fd_, vec, count, flags) == -1) {
+        SYLAR_FMT_ERR("send vec failed, fd: %d, err: %s", fd_, strerror(errno));
+        return false;
+    } 
+    SYLAR_FMT_DEBUG("send vec success, fd: %d", fd_);
+    return true;
+}
+
+bool Socket::send_to(void* buf, size_t len, Address::ptr addr, int flags) {
+    if (::sendto(fd_, buf, len, flags, addr->get_sockaddr(), addr->get_sockaddr_len()) == -1) {
+        SYLAR_FMT_ERR("sendto buf failed, fd: %d, err: %s", fd_, strerror(errno));
+        return false;
+    } 
+    SYLAR_FMT_DEBUG("sendto buf success, fd: %d", fd_);
+    return true;    
+}
+
+bool Socket::send_to(iovec *vec, int count, Address::ptr addr, int flags) {
+    if (::sendto(fd_, vec, count, flags, addr->get_sockaddr(), addr->get_sockaddr_len()) == -1) {
+        SYLAR_FMT_ERR("sendto vec failed, fd: %d, err: %s", fd_, strerror(errno));
+        return false;
+    } 
+    SYLAR_FMT_DEBUG("sendto vec success, fd: %d", fd_);
+    return true;
+}
+
+bool Socket::recv(void* buf, size_t len, int flags) {
+    // use send must make sure socket is connected
+    if (!connected_) {
+        SYLAR_FMT_ERR("recv buf failed, fd: %d, err: %s", fd_, "not connected yet");
+        return false;
+    }
+    if (::recv(fd_, buf, len, flags) == -1) {
+        SYLAR_FMT_ERR("send buf failed, fd: %d, err: %s", fd_, strerror(errno));
+        return false;
+    }
+    SYLAR_FMT_DEBUG("send buf success, fd: %d", fd_);
+    return true;
+}
+
+bool Socket::recv(iovec* buf, size_t count, int flags) {
+    // use send must make sure socket is connected
+    if (!connected_) {
+        SYLAR_FMT_ERR("recv vec failed, fd: %d, err: %s", fd_, "not connected yet");
+        return false;
+    }
+    if (::recv(fd_, buf, count, flags) == -1) {
+        SYLAR_FMT_ERR("recv vec failed, fd: %d, err: %s", fd_, strerror(errno));
+        return false;
+    }
+    SYLAR_FMT_DEBUG("recv vec success, fd: %d", fd_);
+    return true;    
+}
+
+bool Socket::recv_from(void *buf, size_t len, Address::ptr addr, int flags) {
+    // TODO: recvfrom func require sock_len size
+    if (::recvfrom(fd_, buf, len, flags, addr->get_sockaddr(), nullptr) == -1) {
+        SYLAR_FMT_ERR("sendto buf failed, fd: %d, err: %s", fd_, strerror(errno));
+        return false;
+    }
+    SYLAR_FMT_DEBUG("recvfrom buf success, fd: %d", fd_);
+    return true;    
+}
+
+bool Socket::recv_from(iovec *buf, size_t count, Address::ptr addr, int flags) {
+    // TODO: recvfrom func require sock_len size
+    if (::recvfrom(fd_, buf, count, flags, addr->get_sockaddr(), nullptr) == -1) {
+        SYLAR_FMT_ERR("sendto vec failed, fd: %d, err: %s", fd_, strerror(errno));
+        return false;
+    }
+    SYLAR_FMT_DEBUG("recvfrom vec success, fd: %d", fd_);
+    return true;        
+}
+
+void Socket::cancel_read() {
+    // check if need to del
+    if (SystemInfo::get_hook_enabled()) 
+        IOMgr::get_instance()->del_fd_event(fd_, IOManager::Event::READ);
+}
+
+void Socket::cancel_write() {
+    // check if need to del
+    if (SystemInfo::get_hook_enabled()) 
+        IOMgr::get_instance()->del_fd_event(fd_, IOManager::Event::WRITE);
+}
+
+void Socket::cancel_all() {
+    // check if need to del
+    if (SystemInfo::get_hook_enabled()) {
+        IOMgr::get_instance()->del_fd_event(fd_, IOManager::Event::READ);
+        IOMgr::get_instance()->del_fd_event(fd_, IOManager::Event::WRITE);
+    }
 }
 
 }

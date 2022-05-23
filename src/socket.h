@@ -3,6 +3,7 @@
 
 #include "address.h"
 
+#include <cstddef>
 #include <memory>
 
 #include <sys/socket.h>
@@ -129,11 +130,60 @@ public:
     /**
      * @brief send buffer to tcp type socket
      * @param[in] buf send message buf
-     * @param[in] len buf size
+     * @param[in] count buf count
      * @param[in] addr remote udp addr 
      * @param[in] flags send flags
      */
     bool send_to(iovec *vec, int count, Address::ptr addr, int flags);
+
+    /**
+     * @brief receive message from tcp type socket
+     * @param[in] buf receive message buf
+     * @param[in] len message size
+     * @param[in] flags receive flags
+     */
+    bool recv(void* buf, size_t len, int flags = 0);
+
+    /**
+     * @brief receive message from tcp type socket
+     * @param[in] buf receive message buf
+     * @param[in] count buf count
+     * @param[in] flags receive flags
+     */
+    bool recv(iovec* buf, size_t count, int flags = 0);
+
+    /**
+     * @brief receive message from udp type socket
+     * @param[in] buf receive message buf
+     * @param[in] len message size
+     * @param[in] addr remote udp addr 
+     * @param[in] flags receive flags
+     */
+    bool recv_from(void *buf, size_t len, Address::ptr addr, int flags = 0);
+
+    /**
+     * @brief receive message from udp type socket
+     * @param[in] buf receive message buf
+     * @param[in] len buf count
+     * @param[in] addr remote udp addr 
+     * @param[in] flags receive flags
+     */
+    bool recv_from(iovec *buf, size_t count, Address::ptr addr, int flags = 0);
+
+    /**
+     * @brief cancel read from fd, if read is overwrite by hook
+     */
+    void cancel_read();
+
+    /**
+     * @brief cancel write from fd, if read is overwrite by hook
+     */
+    void cancel_write();
+
+    /**
+     * @brief cancel all from fd, if read is overwrite by hook
+     */
+    void cancel_all();
 
     /**
      * @brief get local address info 
@@ -154,6 +204,27 @@ public:
      * @brief destory socket
      */
     virtual~Socket();
+
+public:
+    /**
+     * @brief Get the fd object
+     */
+    int get_fd() { return fd_; }
+
+    /**
+     * @brief Get the family object
+     */
+    int get_family() { return family_; }
+
+    /**
+     * @brief Get the type object
+     */
+    int get_type() { return type_; }
+
+    /**
+     * @brief Get the protocol object
+     */
+    int get_protocol() { return protocol_; }
 
 private:
     /// file descriptor

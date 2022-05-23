@@ -115,7 +115,7 @@ const int IPv4Address::get_family() {
     return AF_INET;
 }
 
-const sockaddr* IPv4Address::get_sockaddr() {
+sockaddr* IPv4Address::get_sockaddr() {
     return (sockaddr*) &addr_;
 }
 
@@ -171,7 +171,7 @@ const int IPv6Address::get_family() {
     return AF_INET6;
 }
 
-const sockaddr* IPv6Address::get_sockaddr() {
+sockaddr* IPv6Address::get_sockaddr() {
     return (sockaddr*) (&addr6_);
 }
 

@@ -45,7 +45,7 @@ public:
     /**
      * @brief get general sockaddr
      */
-    virtual const sockaddr* get_sockaddr() = 0;
+    virtual sockaddr* get_sockaddr() = 0;
 
     /**
      * @brief get general sockaddr
@@ -110,7 +110,7 @@ public:
     /**
      * @brief get general sockaddr
      */
-    virtual const sockaddr* get_sockaddr() override;
+    virtual sockaddr* get_sockaddr() override;
 
     /**
      * @brief get addr length
@@ -159,7 +159,7 @@ public:
     /**
      * @brief get general sockaddr
      */
-    virtual const sockaddr* get_sockaddr() override;
+    virtual sockaddr* get_sockaddr() override;
 
     /**
      * @brief get general sockaddr
@@ -185,4 +185,4 @@ private:
 
 
 
-#endif //!__SYLAR_SRC_ADDRESS_H__
+#endif

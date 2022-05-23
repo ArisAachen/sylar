@@ -49,10 +49,10 @@ extern writev_func writev_f;
 typedef ssize_t (*send_func)(int fd, const void* buf, size_t len, int flags);
 extern send_func send_f;
 
-typedef ssize_t (*sendto_func)(int fd, const void* buf, size_t len, int flags, struct sockaddr *addr, socklen_t addrlen);
+typedef ssize_t (*sendto_func)(int fd, const void* buf, size_t len, int flags, const struct sockaddr *addr, socklen_t addrlen);
 extern sendto_func sendto_f;
 
-typedef ssize_t (*sendmsg_func)(int fd, struct msghdr *mdg, int flags);
+typedef ssize_t (*sendmsg_func)(int fd, const struct msghdr *mdg, int flags);
 extern sendmsg_func sendmsg_f;
 
 typedef int (*close_func)(int fd);
