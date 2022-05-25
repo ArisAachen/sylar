@@ -1,9 +1,11 @@
+#include "bytearray.h"
 #include "fiber.h"
 #include "iomanager.h"
 #include "scheduler.h"
 #include "log.h"
 #include "singleton.h"
 
+#include <string>
 #include <vector>
 #include <cstring>
 
@@ -15,7 +17,6 @@
 void test() {
     SYLAR_DEBUG(">>>>>> execute test func");
 }
-
 
 void fiber_test() {
     std::vector<sylar::Fiber::ptr> vec;
@@ -97,14 +98,23 @@ void io_manager_test() {
 }
 
 
+void byte_array_test() {
+    // create byte array
+    auto arr = sylar::ByteArray::ptr(new sylar::ByteArray());
+    std::string message("this is test message");
+    arr->write_string_nolength(message);
+    arr->set_position(0);
+    SYLAR_FMT_DEBUG("byte array to string: %s", arr->to_string().c_str());
+}
+
 int main () {
     // init log
     sylar::Singleton<sylar::Logger>::get_instance()->init_default();
 
     // scheduler_thread_test();
     // scheduler_test();
-
-    io_manager_test();
+    // io_manager_test();
+    byte_array_test();
 
     return 1;
 }

@@ -42,6 +42,10 @@ TimerManager::TimerManager() {
     timers_.clear();
 }
 
+TimerManager::~TimerManager() {
+    timers_.clear();
+}
+
 bool TimerManager::empty() {
     // read lock here
     MutexType::ReadLock lock(mutex_);
