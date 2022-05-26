@@ -6,6 +6,7 @@
 
 #include <cstring>
 #include <sys/socket.h>
+#include <unistd.h>
 
 namespace sylar {
 
@@ -51,6 +52,10 @@ family_(family), type_(type), protocol_(protocol) {
     }
     SYLAR_FMT_DEBUG("create sock success, fd: %d", fd_);
 } 
+
+Socket::~Socket() {
+    close();
+}
 
 // socket accept
 Socket::ptr Socket::accept() {
@@ -223,6 +228,17 @@ void Socket::cancel_all() {
         IOMgr::get_instance()->del_fd_event(fd_, IOManager::Event::READ);
         IOMgr::get_instance()->del_fd_event(fd_, IOManager::Event::WRITE);
     }
+}
+
+bool Socket::close() {
+    // check if is valid
+    SYLAR_FMT_DEBUG("close fd: %d", fd_);
+    if (!connected_ || fd_ == -1)
+        return true;
+    connected_ = false;
+    if (fd_ != -1)
+        ::close(fd_);
+    return true;
 }
 
 }

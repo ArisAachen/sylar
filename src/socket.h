@@ -80,6 +80,11 @@ public:
     Socket(int family, int type, int protocol = 0);
 
     /**
+     * @brief Destroy the virtual Socket object
+     */
+    virtual~Socket();
+
+    /**
      * @brief try to accept 
      */
     Socket::ptr accept();
@@ -201,9 +206,9 @@ public:
     bool is_connected() { return connected_; }
 
     /**
-     * @brief destory socket
+     * @brief close socket
      */
-    virtual~Socket();
+    bool close();
 
 public:
     /**

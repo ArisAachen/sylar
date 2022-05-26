@@ -3,8 +3,9 @@
 
 #include "log.h"
 
-#include <functional>
 #include <memory>
+#include <functional>
+
 #include <pthread.h>
 
 

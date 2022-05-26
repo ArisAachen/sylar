@@ -33,6 +33,12 @@ IOManager::~IOManager() {
     close(epfd_);
 }
 
+IOManager::ptr IOManager::get_scheduler() {
+    auto sch_mgr = Scheduler::get_scheduler().get();
+    auto io_mgr = dynamic_cast<IOManager*>(sch_mgr);
+    return IOManager::ptr(io_mgr);
+}
+
 // idle to wait more event
 void IOManager::idle() {
     SYLAR_DEBUG("io manager idle start");

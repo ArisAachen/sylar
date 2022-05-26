@@ -70,6 +70,11 @@ private:
 
 public:
     /**
+     * @brief Get the scheduler object
+     */
+    static IOManager::ptr get_scheduler();
+
+    /**
      * @brief Get the epoll backend fd object
      */
     virtual int get_backend_fd();
