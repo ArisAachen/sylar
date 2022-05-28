@@ -434,6 +434,12 @@ public:
     void set_status(HttpStatus status) { status_ = status; }
 
     /**
+     * @brief Set the version object
+     * @param[in] version http version
+     */
+    void set_version(uint8_t version) { version_ = version; }
+
+    /**
      * @brief Set the body object
      * @param[in] body http body
      */
