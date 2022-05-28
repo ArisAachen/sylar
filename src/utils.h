@@ -3,6 +3,7 @@
 
 #include "macro.h"
 
+#include <bits/types/time_t.h>
 #include <cstdarg>
 #include <cstdint>
 #include <cstdio>
@@ -24,6 +25,34 @@ public:
      * @param[in] va args 
      */
     static const std::string sprintf(const char* fmt, ...);
+
+    /**
+     * @brief decode url info
+     * @param[in] url url info
+     * @param[in] space_as_plus use space as plus
+     */
+    static std::string url_decode(const std::string& url, bool space_as_plus = true);
+
+    /**
+     * @brief encode url info
+     * @param[in] url url info
+     * @param[in] space_as_plus use space as plus
+     */
+    static std::string url_encode(const std::string& url, bool space_as_plus = true);
+
+    /**
+     * @brief trim string
+     * @param[in] msg trim message
+     * @param[in] delimit trim delimit
+     */
+    static std::string trim(const std::string& msg, const std::string& delimit = " \t\t\n");
+
+    /**
+     * @brief time format
+     * @param[in] ts time second
+     * @param[in] format time format
+     */
+    static std::string time_format(time_t ts = time(0), const std::string& format = "%Y-%m-%d %H:%M:%S");
 };
 
 // FileUtils use to operate file

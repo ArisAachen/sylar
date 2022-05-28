@@ -1,6 +1,7 @@
 #include "utils.h"
 #include <bits/types/FILE.h>
 #include <bits/types/struct_timespec.h>
+#include <bits/types/struct_tm.h>
 #include <cstdint>
 #include <cstdlib>
 #include <ctime>
@@ -13,6 +14,51 @@ namespace sylar {
 
 static bool is_hook_enabled = false;
 
+static const char uri_chars[256] = {
+    /* 0 */
+    0, 0, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 1, 1, 0,
+    1, 1, 1, 1, 1, 1, 1, 1,   1, 1, 0, 0, 0, 1, 0, 0,
+    /* 64 */
+    0, 1, 1, 1, 1, 1, 1, 1,   1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,   1, 1, 1, 0, 0, 0, 0, 1,
+    0, 1, 1, 1, 1, 1, 1, 1,   1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1,   1, 1, 1, 0, 0, 0, 1, 0,
+    /* 128 */
+    0, 0, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0,
+    /* 192 */
+    0, 0, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0,
+};
+
+static const char xdigit_chars[256] = {
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,1,2,3,4,5,6,7,8,9,0,0,0,0,0,0,
+    0,10,11,12,13,14,15,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,10,11,12,13,14,15,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+};
+
+#define CHAR_IS_UNRESERVED(c)           \
+    (uri_chars[(unsigned char)(c)])
+
 const std::string StringUtils::sprintf(const char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
@@ -23,6 +69,84 @@ const std::string StringUtils::sprintf(const char* fmt, ...) {
     std::string ret(buf, size);
     free(buf);
     return ret;    
+}
+
+std::string StringUtils::url_encode(const std::string &url, bool space_as_plus) {
+    static const char *hexdigits = "0123456789ABCDEF";
+    std::string* ss = nullptr;
+    const char* end = url.c_str() + url.length();
+    for(const char* c = url.c_str() ; c < end; ++c) {
+        if(!CHAR_IS_UNRESERVED(*c)) {
+            if(!ss) {
+                ss = new std::string;
+                ss->reserve(url.size() * 1.2);
+                ss->append(url.c_str(), c - url.c_str());
+            }
+            if(*c == ' ' && space_as_plus) {
+                ss->append(1, '+');
+            } else {
+                ss->append(1, '%');
+                ss->append(1, hexdigits[(uint8_t)*c >> 4]);
+                ss->append(1, hexdigits[*c & 0xf]);
+            }
+        } else if(ss) {
+            ss->append(1, *c);
+        }
+    }
+    if(!ss) {
+        return url;
+    } else {
+        std::string rt = *ss;
+        delete ss;
+        return rt;
+    }
+}
+
+std::string StringUtils::url_decode(const std::string &url, bool space_as_plus) {
+    std::string* ss = nullptr;
+    const char* end = url.c_str() + url.length();
+    for(const char* c = url.c_str(); c < end; ++c) {
+        if(*c == '+' && space_as_plus) {
+            if(!ss) {
+                ss = new std::string;
+                ss->append(url.c_str(), c - url.c_str());
+            }
+            ss->append(1, ' ');
+        } else if(*c == '%' && (c + 2) < end
+                    && isxdigit(*(c + 1)) && isxdigit(*(c + 2))){
+            if(!ss) {
+                ss = new std::string;
+                ss->append(url.c_str(), c - url.c_str());
+            }
+            ss->append(1, (char)(xdigit_chars[(int)*(c + 1)] << 4 | xdigit_chars[(int)*(c + 2)]));
+            c += 2;
+        } else if(ss) {
+            ss->append(1, *c);
+        }
+    }
+    if(!ss) {
+        return url;
+    } else {
+        std::string rt = *ss;
+        delete ss;
+        return rt;
+    }
+}
+
+std::string StringUtils::trim(const std::string &msg, const std::string& delimit) {
+    auto begin = msg.find_first_not_of(delimit);
+    if(begin == std::string::npos) {
+        return "";
+    }
+    auto end = msg.find_last_not_of(delimit);
+    return msg.substr(begin, end - begin + 1);
+}
+
+std::string StringUtils::time_format(time_t ts, const std::string& format) {
+    struct tm *tm = localtime(&ts);
+    char buf[64];
+    strftime(buf, sizeof(buf), format.c_str(), tm);
+    return buf;
 }
 
 // save to file
