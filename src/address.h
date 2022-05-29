@@ -1,6 +1,7 @@
 #ifndef __SYLAR_SRC_ADDRESS_H__
 #define __SYLAR_SRC_ADDRESS_H__
 
+#include <cstdint>
 #include <map>
 #include <vector>
 #include <memory>
@@ -36,6 +37,16 @@ public:
         int family = AF_INET, int type = 0, int protocol = 0);
 
     /**
+     * @brief parse url to addr
+     * @param[in] host url host
+     * @param[in] family socket family
+     * @param[in] type socket type
+     * @param[in] protocol socket protocol
+     */
+    static Address::ptr look_up_any(const std::string& host, int family = AF_INET,
+        int type = 0, int protocol = 0);
+
+    /**
      * @brief create address by sockaddr
      * @param[in] addr addr info
      * @param[in] len sock len
@@ -67,9 +78,15 @@ public:
      */
     virtual const int get_family() = 0;
 
+    /**
+     * @brief Set the port object
+     * @param[in] port port
+     */
+    virtual void set_port(uint16_t port) = 0;
+
 private:
     /// use to storage all type all socket addr 
-    sockaddr_storage storage; 
+    sockaddr_storage storage;
 };
 
 
@@ -121,6 +138,12 @@ public:
      * @brief get readable address message
      */
     virtual const std::string to_string() override;
+
+    /**
+     * @brief Set the port object
+     * @param[in] port port
+     */
+    virtual void set_port(uint16_t port) override;
 
 private:
     /// ipv4 type address
@@ -175,6 +198,12 @@ public:
      * @brief get readable address message
      */
     virtual const std::string to_string() override;
+    
+    /**
+     * @brief Set the port object
+     * @param[in] port port
+     */
+    virtual void set_port(uint16_t port) override;
 
 private:
     /// ipv6 addr 

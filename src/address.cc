@@ -1,4 +1,5 @@
 #include "address.h"
+#include "endian.h"
 #include "hook.h"
 #include "log.h"
 #include "macro.h"
@@ -84,6 +85,13 @@ bool Address::look_up(std::vector<Address::ptr> &result,
     return true;
 }
 
+Address::ptr Address::look_up_any(const std::string& host, int family, int type, int protocol) {
+    std::vector<Address::ptr> result;
+    if (!look_up(result, host, family, type, protocol))
+        return nullptr;
+    return *result.begin();
+}
+
 IPv4Address::IPv4Address(const sockaddr_in& addr) {
     addr_ = addr;
     SYLAR_FMT_DEBUG("create ipv4 addr success, addr: %s:%d", addr.sin_addr, ntohs(addr.sin_port));
@@ -127,6 +135,10 @@ const sockaddr* IPv4Address::get_sockaddr() const {
 // calculate ipv4 addr len
 socklen_t IPv4Address::get_sockaddr_len() {
     return sizeof(addr_);
+}
+
+void IPv4Address::set_port(uint16_t port) {
+    addr_.sin_port = byteswapOnLittleEndian(port);
 }
 
 // convert net ipv4 to readable version
@@ -196,6 +208,10 @@ const std::string IPv6Address::to_string() {
     // port 
     int port = ntohs(addr6_.sin6_port);
     return std::string(buf) + ":" + std::to_string(port);
+}
+
+void IPv6Address::set_port(uint16_t port) {
+    addr6_.sin6_port = byteswapOnLittleEndian(port);
 }
 
 }

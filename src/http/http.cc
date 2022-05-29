@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <cstring>
 #include <ostream>
+#include <sstream>
 #include <string>
 #include <strings.h>
 
@@ -253,41 +254,48 @@ void HttpResponse::del_cookie(const std::string &key) {
     headers_.erase(key);
 }
 
-std::ostream& operator << (std::ostream& os, HttpResponse& resp) {
+std::string HttpResponse::to_string() {
     // HTTP/1.1 304 Not Modified
     // Date: Thu, 07 Jun 2012 07:21:36 GMT
     // Connection: close
+    std::stringstream os;
     os << "HTTP/"
-    << (uint32_t)(resp.version_ >> 4)
+    << (uint32_t)(version_ >> 4)
     << "."
-    << (uint32_t)(resp.version_ & 0x0F)
+    << (uint32_t)(version_ & 0x0F)
     << " "
-    << (uint32_t)resp.status_
+    << (uint32_t)status_
     << " "
-    << (resp.reason_.empty() ? http_status_to_string(resp.status_) : resp.reason_)
+    << (reason_.empty() ? http_status_to_string(status_) : reason_)
     << "\r\n";
     // add header
-    for (auto& it : resp.headers_) {
+    for (auto& it : headers_) {
         // add connection
-        if (!resp.websocket_ && strcasecmp(it.first.c_str(), "connection") == 0)
+        if (!websocket_ && strcasecmp(it.first.c_str(), "connection") == 0)
             continue;
         os << it.first << ": " << it.second << "\r\n";
     }
     // append cookie
-    for (auto& it : resp.cookies_) {
+    for (auto& it : cookies_) {
         os << "Set-Cookie: " << it.first << "=" << it.second << "\r\n";
     }
     // add close
-    if (!resp.websocket_)
-        os << "connection: " << (resp.close_ ? "close" : "keep-alive") << "\r\n";
+    if (!websocket_)
+        os << "connection: " << (close_ ? "close" : "keep-alive") << "\r\n";
 
-    if (!resp.body_.empty()) 
-        os << "content-length: " << resp.body_.size() << "\r\n\r\n" 
-            << resp.body_;
+    if (!body_.empty()) 
+        os << "content-length: " << body_.size() << "\r\n\r\n" 
+            << body_;
     else 
         os << "\r\n";
+    return os.str();
+}
 
-    return os;
+std::ostream& operator << (std::ostream& os, HttpResponse& resp) {
+    // HTTP/1.1 304 Not Modified
+    // Date: Thu, 07 Jun 2012 07:21:36 GMT
+    // Connection: close
+    return os << resp.to_string();
 }
 
 }

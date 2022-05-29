@@ -121,6 +121,11 @@ public:
     bool is_error() { return !!err_code_; }
 
     /**
+     * @brief finish state
+     */
+    bool is_finished() { return finished_; }
+
+    /**
      * @brief Set the error code object
      * @param[in] err_code error code
      */

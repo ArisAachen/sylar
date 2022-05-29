@@ -509,6 +509,11 @@ public:
     void del_cookie(const std::string& key);
 
     /**
+     * @brief to string
+     */
+    std::string to_string();
+    
+    /**
      * @brief output to stream
      * @param[in] os output strea,
      * @param[in] req http request

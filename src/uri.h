@@ -50,7 +50,7 @@ public:
     /**
      * @brief Get the path object
      */
-    const std::string get_path() const { return path_; }
+    const std::string get_path() const { return path_.empty() ? "/" : path_; }
 
     /**
      * @brief Get the query object
