@@ -6,6 +6,7 @@
 
 #include <cstring>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 namespace sylar {
@@ -116,81 +117,87 @@ bool Socket::connect(Address::ptr addr) {
     return true;
 }
 
-bool Socket::send(void* buf, size_t len, int flags) {
+int Socket::send(const void* buf, size_t len, int flags) {
     // use send must make sure socket is connected
     if (!connected_) {
         SYLAR_FMT_ERR("send buf failed, fd: %d, err: %s", fd_, "not connected yet");
         return false;
     }
-    if (::send(fd_, buf, len, flags) == -1) {
+    ssize_t size = ::send(fd_, buf, len, flags);
+    if (size == -1) {
         SYLAR_FMT_ERR("send buf failed, fd: %d, err: %s", fd_, strerror(errno));
-        return false;
+        return -1;
     }
     SYLAR_FMT_DEBUG("send buf success, fd: %d", fd_);
-    return true;    
+    return size;    
 }
 
-bool Socket::send(iovec *vec, size_t count, int flags) {
+int Socket::send(const iovec *vec, size_t count, int flags) {
     // use send must make sure socket is connected
     if (!connected_) {
         SYLAR_FMT_ERR("send vec failed, fd: %d, err: %s", fd_, "not connected yet");
-        return false;
+        return -1;
     }
-    if (::send(fd_, vec, count, flags) == -1) {
+    ssize_t size = ::send(fd_, vec, count, flags);
+    if (size == -1) {
         SYLAR_FMT_ERR("send vec failed, fd: %d, err: %s", fd_, strerror(errno));
-        return false;
+        return -1;
     } 
     SYLAR_FMT_DEBUG("send vec success, fd: %d", fd_);
-    return true;
+    return size;
 }
 
-bool Socket::send_to(void* buf, size_t len, Address::ptr addr, int flags) {
-    if (::sendto(fd_, buf, len, flags, addr->get_sockaddr(), addr->get_sockaddr_len()) == -1) {
+int Socket::send_to(const void* buf, size_t len, Address::ptr addr, int flags) {
+    ssize_t size = ::sendto(fd_, buf, len, flags, addr->get_sockaddr(), addr->get_sockaddr_len());
+    if (size == -1) {
         SYLAR_FMT_ERR("sendto buf failed, fd: %d, err: %s", fd_, strerror(errno));
-        return false;
+        return -1;
     } 
     SYLAR_FMT_DEBUG("sendto buf success, fd: %d", fd_);
-    return true;    
+    return size;    
 }
 
-bool Socket::send_to(iovec *vec, int count, Address::ptr addr, int flags) {
-    if (::sendto(fd_, vec, count, flags, addr->get_sockaddr(), addr->get_sockaddr_len()) == -1) {
+int Socket::send_to(const iovec *vec, int count, Address::ptr addr, int flags) {
+    ssize_t size = ::sendto(fd_, vec, count, flags, addr->get_sockaddr(), addr->get_sockaddr_len());
+    if (size == -1) {
         SYLAR_FMT_ERR("sendto vec failed, fd: %d, err: %s", fd_, strerror(errno));
-        return false;
+        return -1;
     } 
     SYLAR_FMT_DEBUG("sendto vec success, fd: %d", fd_);
-    return true;
+    return size;
 }
 
-bool Socket::recv(void* buf, size_t len, int flags) {
+int Socket::recv(void* buf, size_t len, int flags) {
     // use send must make sure socket is connected
     if (!connected_) {
         SYLAR_FMT_ERR("recv buf failed, fd: %d, err: %s", fd_, "not connected yet");
-        return false;
+        return -1;
     }
-    if (::recv(fd_, buf, len, flags) == -1) {
+    ssize_t size = ::recv(fd_, buf, len, flags);
+    if (size == -1) {
         SYLAR_FMT_ERR("send buf failed, fd: %d, err: %s", fd_, strerror(errno));
         return false;
     }
     SYLAR_FMT_DEBUG("send buf success, fd: %d", fd_);
-    return true;
+    return size;
 }
 
-bool Socket::recv(iovec* buf, size_t count, int flags) {
+int Socket::recv(iovec* buf, size_t count, int flags) {
     // use send must make sure socket is connected
     if (!connected_) {
         SYLAR_FMT_ERR("recv vec failed, fd: %d, err: %s", fd_, "not connected yet");
-        return false;
+        return -1;
     }
-    if (::recv(fd_, buf, count, flags) == -1) {
+    ssize_t size = ::recv(fd_, buf, count, flags);
+    if (size == -1) {
         SYLAR_FMT_ERR("recv vec failed, fd: %d, err: %s", fd_, strerror(errno));
-        return false;
+        return -1;
     }
     SYLAR_FMT_DEBUG("recv vec success, fd: %d", fd_);
-    return true;    
+    return size;    
 }
 
-bool Socket::recv_from(void *buf, size_t len, Address::ptr addr, int flags) {
+int Socket::recv_from(void *buf, size_t len, Address::ptr addr, int flags) {
     // TODO: recvfrom func require sock_len size
     if (::recvfrom(fd_, buf, len, flags, addr->get_sockaddr(), nullptr) == -1) {
         SYLAR_FMT_ERR("sendto buf failed, fd: %d, err: %s", fd_, strerror(errno));
@@ -200,7 +207,7 @@ bool Socket::recv_from(void *buf, size_t len, Address::ptr addr, int flags) {
     return true;    
 }
 
-bool Socket::recv_from(iovec *buf, size_t count, Address::ptr addr, int flags) {
+int Socket::recv_from(iovec *buf, size_t count, Address::ptr addr, int flags) {
     // TODO: recvfrom func require sock_len size
     if (::recvfrom(fd_, buf, count, flags, addr->get_sockaddr(), nullptr) == -1) {
         SYLAR_FMT_ERR("sendto vec failed, fd: %d, err: %s", fd_, strerror(errno));

@@ -113,7 +113,7 @@ public:
      * @param[in] len buf size
      * @param[in] flags send flags
      */
-    bool send(void* buf, size_t len, int flags);
+    int send(const void* buf, size_t len, int flags = 0);
 
     /**
      * @brief send buffer to tcp type socket
@@ -121,7 +121,7 @@ public:
      * @param[in] count vec count
      * @param[in] flags send flags
      */
-    bool send(iovec *vec, size_t count, int flags);
+    int send(const iovec *vec, size_t count, int flags = 0);
 
     /**
      * @brief send buffer to tcp type socket
@@ -130,7 +130,7 @@ public:
      * @param[in] addr remote udp addr
      * @param[in] flags send flags
      */
-    bool send_to(void* buf, size_t len, Address::ptr addr, int flags);
+    int send_to(const void* buf, size_t len, Address::ptr addr, int flags = 0);
 
     /**
      * @brief send buffer to tcp type socket
@@ -139,7 +139,7 @@ public:
      * @param[in] addr remote udp addr 
      * @param[in] flags send flags
      */
-    bool send_to(iovec *vec, int count, Address::ptr addr, int flags);
+    int send_to(const iovec *vec, int count, Address::ptr addr, int flags = 0);
 
     /**
      * @brief receive message from tcp type socket
@@ -147,7 +147,7 @@ public:
      * @param[in] len message size
      * @param[in] flags receive flags
      */
-    bool recv(void* buf, size_t len, int flags = 0);
+    int recv(void* buf, size_t len, int flags = 0);
 
     /**
      * @brief receive message from tcp type socket
@@ -155,7 +155,7 @@ public:
      * @param[in] count buf count
      * @param[in] flags receive flags
      */
-    bool recv(iovec* buf, size_t count, int flags = 0);
+    int recv(iovec* buf, size_t count, int flags = 0);
 
     /**
      * @brief receive message from udp type socket
@@ -164,7 +164,7 @@ public:
      * @param[in] addr remote udp addr 
      * @param[in] flags receive flags
      */
-    bool recv_from(void *buf, size_t len, Address::ptr addr, int flags = 0);
+    int recv_from(void *buf, size_t len, Address::ptr addr, int flags = 0);
 
     /**
      * @brief receive message from udp type socket
@@ -173,7 +173,7 @@ public:
      * @param[in] addr remote udp addr 
      * @param[in] flags receive flags
      */
-    bool recv_from(iovec *buf, size_t count, Address::ptr addr, int flags = 0);
+    int recv_from(iovec *buf, size_t count, Address::ptr addr, int flags = 0);
 
     /**
      * @brief cancel read from fd, if read is overwrite by hook

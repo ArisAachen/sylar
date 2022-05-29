@@ -34,7 +34,8 @@ bool Address::get_ip_info(std::map<std::string, std::vector<Address::ptr>> ip_ma
         // try to get, if not exist, should create automatic
         std::vector<Address::ptr> &ref_vec = ip_map[next->ifa_name];
         // push back
-        Address::ptr addr = Address::create(next->ifa_addr, next->ifa_addr->sa_len);
+        size_t size = (next->ifa_addr->sa_family == AF_INET ? sizeof(sockaddr_in) : sizeof(sockaddr_in6));
+        Address::ptr addr = Address::create(next->ifa_addr, size);
         SYLAR_FMT_DEBUG("ip addr: %s", addr->to_string().c_str());
         ref_vec.push_back(std::move(addr));
     }
