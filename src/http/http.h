@@ -285,7 +285,7 @@ public:
      */
     friend std::ostream& operator << (std::ostream& os, HttpRequest& req);
 
-private:
+public:
     /**
      * @brief init to parse query and param
      */

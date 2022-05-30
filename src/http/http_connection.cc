@@ -3,12 +3,15 @@
 #include "http_connection.h"
 #include "../log.h"
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <memory>
 #include <string>
 #include <sstream>
+#include <vector>
+
 #include <strings.h>
 
 namespace sylar {
@@ -193,6 +196,119 @@ HttpResult::ptr HttpConnection::DoRequest(HttpRequest::ptr req, Uri::ptr uri, ui
             nullptr, "send request failed, err: " + std::string(strerror(errno))));
     HttpResult::ptr result(new HttpResult((int)HttpResult::Error::OK, resp, "ok"));
     return result;
+}
+
+HttpConnectionPool::HttpConnectionPool(const std::string& host, uint32_t port, uint32_t max_size,
+    uint32_t max_alive_time, uint32_t max_request) 
+    : host_(host)
+    , port_(port)
+    , max_size_(max_size)
+    , max_alive_time_(max_alive_time)
+    , max_request_(max_request) {
+    
+}
+
+HttpConnection::ptr HttpConnectionPool::get_connection() {
+    uint64_t ns = SystemInfo::get_elapsed();
+    std::vector<HttpConnection::ptr> invalid_conns;
+    MutexType::Lock lock(mutex_);
+    // remove
+    auto pos = std::remove_if(conns_.begin(), conns_.end(), [ns, this](HttpConnection::ptr conn) {
+        // check if connection is connected
+        if (!conn->is_connected())
+            return true;
+        // if connection time has expired
+        if ((conn->create_time_ + max_alive_time_) > ns) 
+            return true;
+        return false;
+    });
+    // remove
+    conns_.erase(pos, conns_.end());
+    // unlock
+    auto conn = conns_.front();
+    if (conns_.empty())
+        conns_.pop_front();
+    lock.unlock();
+    // if conn not exist
+    if (!conn) {
+        // parse hostaddr 
+        auto addr = Address::look_up_any(host_);
+        if (!addr) {
+            SYLAR_FMT_ERR("lookp up addr failed, host: %s", host_.c_str());
+            return nullptr;
+        }
+        // set port
+        addr->set_port(port_);
+        Socket::ptr sock = Socket::create_tcp(addr);
+        if (!sock) {
+            SYLAR_FMT_ERR("create addr failed, host: %s", addr->to_string().c_str());
+            return nullptr;
+        }
+        // connect addr
+        if (!sock->connect(addr)) {
+            SYLAR_FMT_ERR("connect addr failed, host: %s", addr->to_string().c_str());
+            return nullptr;
+        }
+        // create conn
+        conn = HttpConnection::ptr(new HttpConnection(sock));
+    }
+    return conn;
+}
+
+HttpResult::ptr HttpConnectionPool::Get(const std::string& url, uint64_t timeout, 
+        const std::map<std::string, std::string>& headers, const std::string& body) {
+    return Request(HttpMethod::GET, url, timeout, headers, body);
+}
+
+HttpResult::ptr HttpConnectionPool::Get(Uri::ptr url, uint64_t timeout, 
+        const std::map<std::string, std::string>& headers , const std::string& body) {
+    return Request(HttpMethod::GET, url, timeout, headers, body);
+}
+
+HttpResult::ptr HttpConnectionPool::Post(const std::string& url, uint64_t timeout, 
+        const std::map<std::string, std::string>& headers, const std::string& body) {
+    return Request(HttpMethod::POST, url, timeout, headers, body);
+}
+
+HttpResult::ptr HttpConnectionPool::Post(Uri::ptr uri, uint64_t timeout, 
+        const std::map<std::string, std::string>& headers , const std::string& body) {
+    return Request(HttpMethod::POST, uri, timeout, headers, body);
+}
+
+HttpResult::ptr HttpConnectionPool::Request(HttpMethod method, const std::string& url, uint64_t timeout, 
+        const std::map<std::string, std::string>& headers, const std::string& body) {
+    // create uri    
+    Uri::ptr uri = Uri::create(url);
+    // requesat
+    return Request(method, uri, timeout, headers, body);
+}
+
+HttpResult::ptr HttpConnectionPool::Request(HttpMethod method, Uri::ptr uri, uint timeout,
+        const std::map<std::string, std::string>& headers, const std::string& body) {
+    // create http request
+    HttpRequest::ptr req(new HttpRequest);
+    req->set_path(uri->get_path());
+    req->set_query(uri->get_query());
+    req->set_fragment(uri->get_fragment());
+    req->set_method(method);
+    // add headers
+    for (auto& header : headers) {
+        // check close tate
+        if (strcasecmp(header.first.c_str(), "connection")) 
+            if (strcasecmp(header.second.c_str(), "keep-alive"))
+                req->set_close(false);
+        if (strcasecmp(header.first.c_str(), "host"))
+            req->set_header("Host", host_);
+        // add header
+        req->set_header(header.first, header.second);
+    }
+    // set body
+    req->set_body(body);
+    return Request(req, uri, timeout);  
+}
+
+HttpResult::ptr HttpConnectionPool::Request(HttpRequest::ptr req, Uri::ptr uri, uint64_t timeout) {
+    return HttpConnection::DoRequest(req, uri, timeout);
 }
 
 }

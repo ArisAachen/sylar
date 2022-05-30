@@ -69,9 +69,12 @@ public:
     std::string error;
 };
 
+class HttpConnectionPool;
 
 class HttpConnection : public SocketStream {
 public:
+    /// http connection pool
+    friend class HttpConnectionPool;
     /// share poniter
     typedef std::shared_ptr<HttpConnection> ptr;
 
@@ -181,7 +184,7 @@ public:
 
     /**
      * @brief Construct a new Http Connection Pool object
-     * @param[in] host http hosat
+     * @param[in] host http host
      * @param[in] port htp port
      * @param[in] max_size pool max size
      * @param[in] max_alive_time max keep alive time
@@ -261,7 +264,7 @@ public:
      * @param[in] uri http uri
      * @param[in] timeout http timeout
      */
-    HttpResult::ptr Request(HttpRequest::ptr req, Uri::ptr uri, uint64_t timeout);\
+    HttpResult::ptr Request(HttpRequest::ptr req, Uri::ptr uri, uint64_t timeout);
 
 private:
     /// url host
