@@ -8,9 +8,9 @@
 
 namespace sylar {
 
-TcpServer::TcpServer(const std::string& name, int type, IOManager::ptr io_worker, 
+TcpServer::TcpServer(IOManager::ptr io_worker, 
     IOManager::ptr accept_worker):
-    name_(name), type_(type), io_worker_(io_worker), accept_worker_(accept_worker) {
+    io_worker_(io_worker), accept_worker_(accept_worker) {
     SYLAR_FMT_DEBUG("create tcp server, name: %s", name_.c_str());
 }
 

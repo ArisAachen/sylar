@@ -24,7 +24,7 @@ public:
      * @param[in] io_worker 
      * @param[in] accept_worker socket accept scheduler
      */
-    TcpServer(const std::string& name, int type, IOManager::ptr io_worker = IOManager::get_scheduler(), 
+    TcpServer(IOManager::ptr io_worker = IOManager::get_scheduler(), 
         IOManager::ptr accept_worker = IOManager::get_scheduler());
 
     /**
@@ -54,6 +54,17 @@ public:
      * @brief stop server
      */
     virtual bool stop();
+
+    /**
+     * @brief Set the name object
+     * @param[in] name name
+     */
+    virtual void set_name(const std::string& name) { name_ = name; }
+
+    /**
+     * @brief Get the name object
+     */
+    virtual std::string get_name() { return name_; }
 
 protected:
     /**
